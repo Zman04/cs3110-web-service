@@ -32,15 +32,26 @@ const handleRequest = (req, res) => {
     req.on("data", (chunk) => { body += chunk; }); // Accumulate chunks
     
     req.on("end", () => {
-        // Use the lecture's logic: POST creates a new resource
-        if (req.method === 'POST') {
-            // In a real form, this might be 'newItem=value'
-            // For now, we'll push the raw body or a parsed version
-            itemsList.push(body || "New Anonymous Item");
-            res.writeHead(201, { "Content-Type": "text/plain" }); // 201: Created
-            return res.end("Item Added");
+        //  POST creates a new resourc
+	if (req.method === 'POST') {
+	    let body = "";
+		req.on("data", (chunk) => { body += chunk; }); [cite: 332-334]
+
+    		req.on("end", () => {
+        // Use parseData to turn "newItem=dragonfruit" into { newItem: "dragonfruit" }
+        const parsed = parseData(body); [cite: 340, 363]
+
+        if (parsed.newItem) {
+            itemsList.push(parsed.newItem); [cite: 363]
+            res.writeHead(201, { "Content-Type": "text/plain" }); [cite: 366]
+            return res.end("Item Added: " + parsed.newItem);
         }
 
+        res.writeHead(400); // Bad Request if newItem is missing
+        return res.end("Error: Missing newItem parameter");
+    });
+    return; // Ensure the outer function doesn't send a response yet [cite: 343-346]
+}
         // 3. PUT - Update an existing resource
         if (req.method === 'PUT') {
             if (query.index !== undefined && itemsList[query.index]) {

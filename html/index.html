@@ -8,5 +8,20 @@
 	<h1>Hello World</h1>
 	<img src="IMG_7993.JPG" alt="image" width="400">
 	<a href="app.html">Other page</a>
+
+<hr>
+<h2>API Item Manager</h2>
+
+<form action="/api/items" method="POST">
+    <label for="newItem">Add a new item:</label>
+    <input type="text" id="newItem" name="newItem" required>
+    <button type="submit">Submit (POST)</button>
+</form>
+
+<br>
+
+<p>
+    <a href="/api/items" target="_blank">View all items (GET JSON)</a>
+</p>
 </body>
 </html>
