@@ -1,6 +1,6 @@
 // HTML elements
-const scoreCorrect = document.getElementById('score-incorrect')
-const scoreIncorrect = document.getElementById('score-correct')
+const scoreCorrect = document.getElementById('score-correct')
+const scoreIncorrect = document.getElementById('score-incorrect')
 const cardIncorrect = document.getElementById('card-incorrect')
 const cardCorrect = document.getElementById('card-correct')
 
@@ -56,3 +56,21 @@ document.addEventListener("keydown", handleReset)
 
 cardIncorrect.addEventListener("click", handleIncorrectClick);
 cardCorrect.addEventListener("click", handleCorrectClick)
+
+// --- Screen Transition Logic ---
+const mainMenuScreen = document.getElementById('main-menu-screen');
+const flashcardScreen = document.getElementById('flashcard-screen');
+const startBtn = document.getElementById('start-btn');
+const backBtn = document.getElementById('back-btn');
+
+startBtn.addEventListener('click', () => {
+    // Hide the menu, show the flashcards
+    mainMenuScreen.style.display = 'none';
+    flashcardScreen.style.display = 'block'; 
+});
+
+backBtn.addEventListener('click', () => {
+    // Hide the flashcards, show the menu
+    flashcardScreen.style.display = 'none';
+    mainMenuScreen.style.display = 'block';
+});

@@ -8,6 +8,21 @@
         </head>
 
     <body>
+
+	<div id="main-menu-screen">
+            <header>
+                <h1>Interactive Flashcards</h1>
+            </header>
+            <main style="flex-direction: column; gap: 20px;">
+                <button id="create-deck-btn">+ Create New Card Deck</button>
+                <button id="start-btn">Open Spatial Directions Deck</button>
+            </main>
+        </div>
+
+	<div id="flashcard-screen" style="display: none;">
+
+		<button id="back-btn" style= "margin: 10px;"> Back to Menu</button>
+
         <header>
             <div class="score-area">
                 <div class="score-incorrect" id="score-incorrect"></div>
@@ -21,6 +36,6 @@
                 </div>
             </div>
         </main>
-        <script src="script.js"></script>
+       </div>  <script src="script.js"></script>
     </body>
 </html>
