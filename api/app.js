@@ -13,12 +13,28 @@ const handleRequest = (req, res) => {
     const queryParams = parsedUrl.searchParams;
 
     // Check if the user is visiting our /api path
-    if (req.url === "/api") {
+    if (parsedUrl.pathname === "/api") {
         
         // --- HANDLE GET (Read Data) ---
         if (req.method === "GET") {
+	    // GET endpoint parameters
+	    if (queryParams.has("index")) {
+		const index = parseInt(queryParams.get("index")); // Get the number
+
+	    // If that item exists in our array
+	    if (itemsList[index]) {
+		res.writeHead(200, { "Content-Type": "application/json" });
+		return res.end(JSON.stringify({ item: itemsList[index] } ));
+	    } else {
+		// get 404 (If the item doesn't exist)
+		res.writeHead(404, { "Content-Type": "text/plain" });
+		return res.end("404 Error: Item not found");
+		}
+	    }
+
+	    // GET endpoint if no parameters are given
             res.writeHead(200, { "Content-Type": "text/plain" });
-            res.end("Good afternoon! This is a GET response.");
+            return res.end(JSON.stringify(itemsList));
         }
         
         // --- HANDLE POST (Create Data) ---
