@@ -2,6 +2,8 @@
 const http = require('http');
 const url = require('url'); // Optional helper, but modern Node uses the URL class
 
+let itemsList = ["apple", "banana", "cherry"];
+
 // Function to handle all incoming browser requests
 const handleRequest = (req, res) => {
     
