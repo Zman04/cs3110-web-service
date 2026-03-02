@@ -1,81 +1,69 @@
-#!/usr/bin/env node
-const http = require("http");
-const url = require("url");
+// Import the 'http' module (built-in to Node.js)
+const http = require('http');
+const url = require('url'); // Optional helper, but modern Node uses the URL class
 
-// Global State: This persists as long as the server is running [cite: 349]
-const itemsList = ["apple", "banana", "cherry"];
-
+// Function to handle all incoming browser requests
 const handleRequest = (req, res) => {
-    const parsedURL = url.parse(req.url, true);
-    const query = parsedURL.query;
-    const path = parsedURL.pathname;
+    
+    // Use the request URL and the host to create a searchable object
+    const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
+    // Accessing the 'query' part of the URL
+    const queryParams = parsedUrl.searchParams;
 
-    // 1. GET Endpoint - Read resources 
-    if (req.method === 'GET') {
-        res.writeHead(200, { "Content-Type": "application/json" });
-        if (query.index !== undefined) {
-            // Return specific item or 404 if it doesn't exist
-            const item = itemsList[query.index];
-            if (item) {
-                return res.end(JSON.stringify({ item }));
-            } else {
-                res.writeHead(404);
-                return res.end(JSON.stringify({ error: "Item not found" }));
-            }
+    // Check if the user is visiting our /api path
+    if (req.url === "/api") {
+        
+        // --- HANDLE GET (Read Data) ---
+        if (req.method === "GET") {
+            res.writeHead(200, { "Content-Type": "text/plain" });
+            res.end("Good afternoon! This is a GET response.");
         }
-        // Return everything if no index is provided
-        return res.end(JSON.stringify(itemsList));
+        
+        // --- HANDLE POST (Create Data) ---
+        else if (req.method === "POST") {
+            let body = "";
+            // As data arrives in 'chunks' (Buffers), convert to string and collect
+            req.on("data", (chunk) => { body += chunk.toString(); });
+
+            // Once the stream is finished, we process the full data
+            req.on("end", () => {
+                console.log("Received POST data:", body);
+                res.writeHead(201, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ message: "Data Created!", received: body }));
+            });
+        }
+        
+        // --- HANDLE PUT (Update Data) ---
+        else if (req.method === "PUT") {
+            let body = "";
+            req.on("data", (chunk) => { body += chunk.toString(); });
+            req.on("end", () => {
+                // In a real app, you'd use this 'body' to update a database
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ message: "Data Updated Successfully!" }));
+            });
+        }
     }
 
-    // 2. POST, PUT, and DELETE require body parsing or index handling
-    let body = "";
-    req.on("data", (chunk) => { body += chunk; }); // Accumulate chunks
+    // Handle specific sub-routes
+    else if (req.url === "/api/test") {
+        res.writeHead(200, { "Content-Type": "text/plain" });
+        res.end("Good afternoon from test");
+    }
     
-    req.on("end", () => {
-        //  POST creates a new resourc
-	if (req.method === 'POST') {
-	    let body = "";
-		req.on("data", (chunk) => { body += chunk; }); [cite: 332-334]
+    // Handle the query parameter example
+    else if (parsedUrl.pathname === "/api/user") {
+        // If the URL is /api/user?name=Hemant
+        const name = queryParams.get("name"); // Gets "Hemant"
 
-    		req.on("end", () => {
-        // Use parseData to turn "newItem=dragonfruit" into { newItem: "dragonfruit" }
-        const parsed = parseData(body); [cite: 340, 363]
-
-        if (parsed.newItem) {
-            itemsList.push(parsed.newItem); [cite: 363]
-            res.writeHead(201, { "Content-Type": "text/plain" }); [cite: 366]
-            return res.end("Item Added: " + parsed.newItem);
-        }
-
-        res.writeHead(400); // Bad Request if newItem is missing
-        return res.end("Error: Missing newItem parameter");
-    });
-    return; // Ensure the outer function doesn't send a response yet [cite: 343-346]
-}
-        // 3. PUT - Update an existing resource
-        if (req.method === 'PUT') {
-            if (query.index !== undefined && itemsList[query.index]) {
-                itemsList[query.index] = body || "Updated Item";
-                res.writeHead(200);
-                return res.end("Item Updated");
-            }
-            res.writeHead(404);
-            return res.end("Cannot update: Index not found");
-        }
-
-        // 4. DELETE - Remove a resource
-        if (req.method === 'DELETE') {
-            if (query.index !== undefined && itemsList[query.index]) {
-                itemsList.splice(query.index, 1); // Remove from array
-                res.writeHead(200);
-                return res.end("Item Deleted");
-            }
-            res.writeHead(404);
-            return res.end("Cannot delete: Index not found");
-        }
-    });
+        res.writeHead(200, { "Content-Type": "text/plain" });
+        res.end(`Hello, ${name || "Guest"}! This came from a Query Parameter.`);
+    }
 };
 
+// Create the server using the logic above
 const server = http.createServer(handleRequest);
-server.listen(3000); 
-console.log("Server listening on port 3000");
+// Tell the server to listen for traffic on Port 3000
+server.listen(3000, () => {
+    console.log("Server is running on port 3000...");
+});
