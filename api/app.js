@@ -46,8 +46,23 @@ const handleRequest = (req, res) => {
             // Once the stream is finished, we process the full data
             req.on("end", () => {
                 console.log("Received POST data:", body);
+		
+		// Extract the new item
+		const parsedBody = new URLSearchParams(body);
+
+		// Check query params or the parsed body or the raw body
+		const newItem = queryParams.get("newItem") || parsedBody.get("newItem") || body.trim();
+
+		// POST Errors
+		if (!newItem || newItem === "") {
+		    res.writeHead(400, {"Content-Type": "text/plain" });
+		    return res.end("400 Bad Request: Missing item data.");
+		}
+		// post endpoin
+		itemsList.push(newItem);
+
                 res.writeHead(201, { "Content-Type": "application/json" });
-                res.end(JSON.stringify({ message: "Data Created!", received: body }));
+		return res.end(JSON.stringify({ message: "Data Created!", list: itemsList }));
             });
         }
         
