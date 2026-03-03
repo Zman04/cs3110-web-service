@@ -70,11 +70,45 @@ const handleRequest = (req, res) => {
         else if (req.method === "PUT") {
             let body = "";
             req.on("data", (chunk) => { body += chunk.toString(); });
+
             req.on("end", () => {
-                // In a real app, you'd use this 'body' to update a database
+                // Get the index from the url (?index=1)
+		const index = queryParams.get("index");
+
+		// Extract the new text from the body
+		const parsedBody = new URLSearchParams(body);
+		const updatedItem = parsedBody.get("newItem") || body.trim();
+
+		// Error handling: 400 if index is missing, doesn't exist, or body is empty
+		if (!index || !itemsList[index] || !updatedItem || updatedItem === "") {
+		    res.writeHead(400, { "Content-Type": "text/plain" });
+		    return res.end("400 Bad Request: Missing valid index or data to update.");
+		}
+
+		// Update the global array
+		itemsList[index] = updatedItem;
+
                 res.writeHead(200, { "Content-Type": "application/json" });
-                res.end(JSON.stringify({ message: "Data Updated Successfully!" }));
+                res.end(JSON.stringify({ message: "Data Updated Successfully!", list: itemsList }));
             });
+        }
+
+	// --- HANDLE DELETE (Remove Data) ---
+        else if (req.method === "DELETE") {
+            // 1. Get the index from the URL (?index=1)
+            const index = queryParams.get("index");
+
+            // 2. Error handling: 400 if index is missing or doesn't exist
+            if (!index || !itemsList[index]) {
+                res.writeHead(400, { "Content-Type": "text/plain" });
+                return res.end("400 Bad Request: Missing or invalid index.");
+            }
+
+            // 3. Remove the item from the global array using splice
+            const removedItem = itemsList.splice(index, 1);
+            
+            res.writeHead(200, { "Content-Type": "application/json" });
+            return res.end(JSON.stringify({ message: `Successfully deleted ${removedItem}`, list: itemsList }));
         }
     }
 
