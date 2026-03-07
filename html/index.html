@@ -1,27 +1,23 @@
 <!DOCTYPE html>
-<html>
-	<head>
-		<link rel="stylesheet" href="style.css">
-		<title>Home Page</title>
-	</head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AJAX CRUD API</title>
+</head>
 <body>
-	<h1>Hello World</h1>
-	<img src="IMG_7993.JPG" alt="image" width="400">
-	<a href="app.html">Other page</a>
+    <h2>Dynamic API Item Manager</h2>
 
-<hr>
-<h2>API Item Manager</h2>
+    <div>
+        <input type="text" id="newItemInput" placeholder="Add a new fruit...">
+        <button id="addBtn">Add Item (POST)</button>
+    </div>
 
-<form action="/api" method="POST">
-    <label for="newItem">Add a new item:</label>
-    <input type="text" id="newItem" name="newItem" required>
-    <button type="submit">Submit (POST)</button>
-</form>
+    <hr>
 
-<br>
+    <h3>Current Items:</h3>
+    <ul id="itemsContainer">
+        </ul>
 
-<p>
-    <a href="/api" target="_blank">View all items (GET JSON)</a>
-</p>
+    <script src="script.js"></script>
 </body>
 </html>
