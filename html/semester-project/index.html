@@ -1,27 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Title</title>
-        <link rel="stylesheet" href="style.css">
-        </head>
 
-    <body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Title</title>
+    <link rel="stylesheet" href="style.css">
+</head>
 
-	<div id="main-menu-screen">
-            <header>
-                <h1>Interactive Flashcards</h1>
-            </header>
-            <main style="flex-direction: column; gap: 20px;">
-                <button id="create-deck-btn">+ Create New Card Deck</button>
-                <button id="start-btn">Open Spatial Directions Deck</button>
-            </main>
-        </div>
+<body>
 
-	<div id="flashcard-screen" style="display: none;">
+    <div id="main-menu-screen">
+        <header>
+            <h1>Interactive Flashcards</h1>
+        </header>
+        <main style="flex-direction: column; gap: 20px;">
+            <button id="create-deck-btn">+ Create New Card Deck</button>
+            <button id="start-btn">Open Spatial Directions Deck</button>
+        </main>
+    </div>
 
-		<button id="back-btn" style= "margin: 10px;"> Back to Menu</button>
+    <div id="flashcard-screen" style="display: none;">
+
+        <button id="back-btn" style="margin: 10px;"> Back to Menu</button>
 
         <header>
             <div class="score-area">
@@ -31,11 +32,20 @@
         </header>
         <main>
             <div class="flashcard-area">
-                <div class="card-incorrect" id="card-incorrect">
-                    <div class="card-correct" id="card-correct"></div>
+                <h2 id="flashcard-question" style="text-align: center; margin-bottom: 20px;">Question goes here</h2>
+                <div class="card-incorrect" id="card-incorrect" style="position: relative; display: inline-block;">
+                    <!-- Image will be loaded dynamically -->
+                    <img id="flashcard-image" src="" alt="Flashcard scenario" style="display: block; max-width: 100%;"
+                        draggable="false">
+
+                    <!-- The correct area (green box) positioned absolutely over the image -->
+                    <div class="card-correct" id="card-correct" style="position: absolute;"></div>
                 </div>
+                <div id="flashcard-explanation" style="margin-top: 20px; text-align: center; color: #555;"></div>
             </div>
         </main>
-       </div>  <script src="script.js"></script>
-    </body>
+    </div>
+    <script src="script.js"></script>
+</body>
+
 </html>

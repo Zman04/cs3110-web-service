@@ -1,1 +1,3 @@
 This project is the baseline for a flashcard application. The cards will be designed around spacial answering (click the right spot on the image). The ugly christmas colors right now is just to differentiate between clicking in a desired area vs an undesired area. I will probably integrate this in my semester project.
+
+python3 -m http.server 8000
