@@ -11,6 +11,10 @@ main {
     /* Background color will show behind the image if it doesn't fill the container, but the image is the primary target now */
     border: 2px solid #ccc;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+    /* Shrink-wrap the container to the image's layout size */
+    position: relative;
+    display: inline-block;
 }
 
 .card-incorrect img {
@@ -20,6 +24,14 @@ main {
     -webkit-user-drag: none;
     -webkit-user-select: none;
     cursor: crosshair;
+
+    /* Constrain the image limits without distorting its aspect ratio. */
+    display: block;
+    max-width: 100%;
+    max-height: 60vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
 }
 
 .card-correct {

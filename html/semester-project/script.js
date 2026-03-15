@@ -16,7 +16,7 @@ const backBtn = document.getElementById('back-btn');
 const spatialDeck = [
     {
         id: 1,
-        imageSrc: 'https://placehold.co/600x400/eeeeee/999999?text=Map+Intersection', // Placeholder URL
+        imageSrc: 'images/cs3160-hospital-image.png',
         question: "Which direction should I take to get to the hospital?",
         // x and y in percentages to be responsive to image scaling
         correctArea: { x: 70, y: 30, width: 20, height: 20 },
@@ -24,17 +24,17 @@ const spatialDeck = [
     },
     {
         id: 2,
-        imageSrc: 'https://placehold.co/600x400/333333/ffffff?text=Dark+Hallway',
+        imageSrc: 'images/cs3160-hallway-image.png',
         question: "Where is the emergency exit?",
         correctArea: { x: 40, y: 10, width: 20, height: 15 },
         explanation: "The glowing red sign above indicates the exit."
     },
     {
         id: 3,
-        imageSrc: 'https://placehold.co/600x400/2288dd/ffffff?text=Dashboard',
-        question: "Click on the hazards button.",
+        imageSrc: 'images/cs3160-parabola-image.png',
+        question: "Click on the vertex of the parabola.",
         correctArea: { x: 45, y: 50, width: 10, height: 15 },
-        explanation: "The red triangle indicates the hazard lights."
+        explanation: "The vertex is the lowest or highest point of the parabola."
     }
 ];
 
