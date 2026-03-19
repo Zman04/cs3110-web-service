@@ -117,7 +117,7 @@ const server = https.createServer(options, (req, res) => {
     res.end('Not Found');
 });
 
-server.listen(443, () => {
-    console.log('Secure server running on port 443');
+server.listen(8443, () => {
+    console.log('Secure server running on port 8443');
 });
 
