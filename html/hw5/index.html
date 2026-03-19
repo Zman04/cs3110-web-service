@@ -3,12 +3,80 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Secure Portal</title>
 </head>
 
 <body>
+    <h1>Security Portal</h1>
 
+    <button onclick="loadPublic()">1. Load Public Data (GET)</button>
+    <button onclick="createThing()">2. Create Thing (POST)</button>
+    <button onclick="editThing()">3. Edit Thing (PUT)</button>
+    <button onclick="deleteThing()">4. Delete Thing (DELETE)</button>
+
+    <div id="output">
+        Output will appear here...
+    </div>
+
+    <script>
+        // Unauthenticated AJAX GET
+        function loadPublic() {
+            fetch('/api/public')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('output').innerText = data;
+                });
+        }
+
+        // Authenticated AJAX POST
+        function createThing() {
+            fetch('/api/things', {
+                method: 'POST'
+            })
+                .then(response => {
+                    if (response.status === 401) {
+                        document.getElementById('output').innerText = "Please log in to create.";
+                    } else {
+                        return response.text();
+                    }
+                })
+                .then(data => {
+                    if (data) document.getElementById('output').innerText = data;
+                });
+        }
+
+        function editThing() {
+            fetch('/api/things', {
+                method: 'PUT'
+            })
+                .then(response => {
+                    if (response.status === 401) {
+                        document.getElementById('output').innerText = "Please log in to edit.";
+                    } else {
+                        return response.text();
+                    }
+                })
+                .then(data => {
+                    if (data) document.getElementById('output').innerText = data;
+                });
+        }
+
+        function deleteThing() {
+            fetch('/api/things', {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (response.status === 401) {
+                        document.getElementById('output').innerText = "Please log in to delete.";
+                    } else {
+                        return response.text();
+                    }
+                })
+                .then(data => {
+                    if (data) document.getElementById('output').innerText = data;
+                });
+        }
+    </script>
 </body>
 
 </html>
