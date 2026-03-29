@@ -10,42 +10,55 @@ const flashcardExplanation = document.getElementById('flashcard-explanation');
 const mainMenuScreen = document.getElementById('main-menu-screen');
 const flashcardScreen = document.getElementById('flashcard-screen');
 const startBtn = document.getElementById('start-btn');
+const deck2Btn = document.getElementById('deck2-btn');
 const backBtn = document.getElementById('back-btn');
+const createDeckBtn = document.getElementById('create-deck-btn');
 
 // --- Flashcard Data Storage ---
-const spatialDeck = [
-    {
-        id: 1,
-        imageSrc: 'images/cs3160-hospital-image.png',
-        question: "Which direction should I take to get to the hospital?",
-        // x and y in percentages to be responsive to image scaling
-        correctArea: { x: 70, y: 30, width: 20, height: 20 },
-        explanation: "The hospital is located to the right."
-    },
-    {
-        id: 2,
-        imageSrc: 'images/cs3160-hallway-image.png',
-        question: "Where is the emergency exit?",
-        correctArea: { x: 40, y: 10, width: 20, height: 15 },
-        explanation: "The glowing red sign above indicates the exit."
-    },
-    {
-        id: 3,
-        imageSrc: 'images/cs3160-parabola-image.png',
-        question: "Click on the vertex of the parabola.",
-        correctArea: { x: 45, y: 50, width: 10, height: 15 },
-        explanation: "The vertex is the lowest or highest point of the parabola."
-    }
-];
+const decks = {
+    spatial: [
+        {
+            id: 1,
+            imageSrc: 'images/cs3160-hospital-image.png',
+            question: "Which direction should I take to get to the hospital?",
+            correctArea: { x: 70, y: 30, width: 20, height: 20 },
+            explanation: "The hospital is located to the right."
+        },
+        {
+            id: 2,
+            imageSrc: 'images/cs3160-hallway-image.png',
+            question: "Where is the emergency exit?",
+            correctArea: { x: 40, y: 10, width: 20, height: 15 },
+            explanation: "The glowing red sign above indicates the exit."
+        },
+        {
+            id: 3,
+            imageSrc: 'images/cs3160-parabola-image.png',
+            question: "Click on the vertex of the parabola.",
+            correctArea: { x: 45, y: 50, width: 10, height: 15 },
+            explanation: "The vertex is the lowest or highest point of the parabola."
+        }
+    ],
+    deck2: [
+        {
+            id: 1,
+            imageSrc: 'https://via.placeholder.com/400x300?text=Deck+2+Sample',
+            question: "Click anywhere on this sample image.",
+            correctArea: { x: 0, y: 0, width: 100, height: 100 },
+            explanation: "This is a placeholder for Deck 2."
+        }
+    ]
+};
 
 // Initialization
+let currentDeck = decks.spatial;
 let scoreCorrectCounter = 0;
 let scoreIncorrectCounter = 0;
 let currentCardIndex = 0;
 
 // Loads the flashcard data onto the screen
 function loadFlashcard(index) {
-    if (index >= spatialDeck.length) {
+    if (index >= currentDeck.length) {
         flashcardQuestion.innerText = "Deck Complete. Press 'Back to Menu' or 'R' to restart.";
         cardIncorrect.style.display = 'none'; // Hide the image area
         flashcardExplanation.innerText = "";
@@ -53,7 +66,7 @@ function loadFlashcard(index) {
     }
 
     cardIncorrect.style.display = 'inline-block'; // Make sure image is visible
-    const cardData = spatialDeck[index];
+    const cardData = currentDeck[index];
 
     flashcardImage.src = cardData.imageSrc;
     flashcardQuestion.innerText = cardData.question;
@@ -65,7 +78,7 @@ function loadFlashcard(index) {
     cardCorrect.style.width = cardData.correctArea.width + "%";
     cardCorrect.style.height = cardData.correctArea.height + "%";
 
-    // Make sure the correct card is attached to the DOM (since we removed it before)
+    // Make sure the correct card is attached to the DOM
     if (!document.getElementById('card-correct')) {
         cardIncorrect.appendChild(cardCorrect);
     }
@@ -73,12 +86,11 @@ function loadFlashcard(index) {
 
 // handleIncorrectClick handles clicks anywhere on the image outside the green box
 const handleIncorrectClick = (event) => {
-    console.log("Incorrect area was clicked.");
     scoreIncorrectCounter++;
     scoreIncorrect.innerText = scoreIncorrectCounter;
 
-    if (currentCardIndex < spatialDeck.length) {
-        flashcardExplanation.innerText = "Incorrect. " + spatialDeck[currentCardIndex].explanation;
+    if (currentCardIndex < currentDeck.length) {
+        flashcardExplanation.innerText = "Incorrect. " + currentDeck[currentCardIndex].explanation;
 
         // Move to next card after a brief delay
         setTimeout(() => {
@@ -90,14 +102,13 @@ const handleIncorrectClick = (event) => {
 
 // handleCorrectClick handles clicks on the green box
 const handleCorrectClick = (event) => {
-    console.log("Correct area was clicked.");
     event.stopPropagation(); // Prevents the click from reaching cardIncorrect
 
     scoreCorrectCounter++;
     scoreCorrect.innerText = scoreCorrectCounter;
 
-    if (currentCardIndex < spatialDeck.length) {
-        flashcardExplanation.innerText = "Correct! " + spatialDeck[currentCardIndex].explanation;
+    if (currentCardIndex < currentDeck.length) {
+        flashcardExplanation.innerText = "Correct! " + currentDeck[currentCardIndex].explanation;
 
         // Briefly remove the target box to give visual feedback
         cardCorrect.remove();
@@ -123,22 +134,34 @@ const handleReset = (event) => {
     }
 }
 
+function startDeck(deckKey) {
+    if (decks[deckKey]) {
+        currentDeck = decks[deckKey];
+        currentCardIndex = 0;
+        scoreCorrectCounter = 0;
+        scoreIncorrectCounter = 0;
+        scoreCorrect.innerText = 0;
+        scoreIncorrect.innerText = 0;
+
+        mainMenuScreen.style.display = 'none';
+        flashcardScreen.style.display = 'block';
+        loadFlashcard(currentCardIndex);
+    }
+}
+
 // --- Event Listeners ---
 document.addEventListener("keydown", handleReset);
 cardIncorrect.addEventListener("click", handleIncorrectClick);
 cardCorrect.addEventListener("click", handleCorrectClick);
 
-startBtn.addEventListener('click', () => {
-    // Hide the menu, show the flashcards
-    mainMenuScreen.style.display = 'none';
-    flashcardScreen.style.display = 'block';
-
-    // Load the first card when starting
-    loadFlashcard(currentCardIndex);
-});
+startBtn.addEventListener('click', () => startDeck('spatial'));
+deck2Btn.addEventListener('click', () => startDeck('deck2'));
 
 backBtn.addEventListener('click', () => {
-    // Hide the flashcards, show the menu
     flashcardScreen.style.display = 'none';
     mainMenuScreen.style.display = 'block';
+});
+
+createDeckBtn.addEventListener('click', () => {
+    alert("Deck creation feature coming soon");
 });

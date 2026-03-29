@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Title</title>
-    <link rel="stylesheet" href="style.css?v=2">
+    <meta name="description" content="An interactive flashcard application.">
+    <title>Interactive Flashcards</title>
+    <link rel="stylesheet" href="style.css?v=3">
 </head>
 
 <body>
@@ -14,9 +15,16 @@
         <header>
             <h1>Interactive Flashcards</h1>
         </header>
-        <main style="flex-direction: column; gap: 20px;">
-            <button id="create-deck-btn">+ Create New Card Deck</button>
-            <button id="start-btn">Open Spatial Directions Deck</button>
+
+        <main id="main-menu-content">
+            <div id="deck-container">
+                <div id="deck-list">
+                    <!-- Decks will be populated dynamically -->
+                    <button class="deck-btn" id="start-btn">Spatial Directions</button>
+                    <button class="deck-btn" id="deck2-btn">Deck 2</button>
+                </div>
+                <button id="create-deck-btn">+ Create New Card Deck</button>
+            </div>
         </main>
     </div>
 
