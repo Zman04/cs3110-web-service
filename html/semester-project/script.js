@@ -14,6 +14,22 @@ const deck2Btn = document.getElementById('deck2-btn');
 const backBtn = document.getElementById('back-btn');
 const createDeckBtn = document.getElementById('create-deck-btn');
 
+const deckDetailsScreen = document.getElementById('deck-details-screen');
+const deckDetailsTitle = document.getElementById('deck-details-title');
+const studyDeckBtn = document.getElementById('study-deck-btn');
+const editDeckBtn = document.getElementById('edit-deck-btn');
+const detailsBackBtn = document.getElementById('details-back-btn');
+
+const editDeckScreen = document.getElementById('edit-deck-screen');
+const addCardBtn = document.getElementById('add-card-btn');
+const editBackBtn = document.getElementById('edit-back-btn');
+
+const addCardModal = document.getElementById('add-card-modal');
+const closeModalBtn = document.getElementById('close-modal-btn');
+
+let selectedDeckKey = null;
+let selectedDeckName = null;
+
 // --- Flashcard Data Storage ---
 const decks = {
     spatial: [
@@ -143,10 +159,29 @@ function startDeck(deckKey) {
         scoreCorrect.innerText = 0;
         scoreIncorrect.innerText = 0;
 
-        mainMenuScreen.style.display = 'none';
+        deckDetailsScreen.style.display = 'none';
         flashcardScreen.style.display = 'block';
         loadFlashcard(currentCardIndex);
     }
+}
+
+// --- UI Navigation Methods ---
+function showDeckDetails(deckKey, deckName) {
+    selectedDeckKey = deckKey;
+    selectedDeckName = deckName;
+    
+    deckDetailsTitle.innerText = deckName;
+    
+    mainMenuScreen.style.display = 'none';
+    deckDetailsScreen.style.display = 'block';
+}
+
+function hideAllScreens() {
+    mainMenuScreen.style.display = 'none';
+    flashcardScreen.style.display = 'none';
+    deckDetailsScreen.style.display = 'none';
+    editDeckScreen.style.display = 'none';
+    addCardModal.style.display = 'none';
 }
 
 // --- Event Listeners ---
@@ -154,8 +189,44 @@ document.addEventListener("keydown", handleReset);
 cardIncorrect.addEventListener("click", handleIncorrectClick);
 cardCorrect.addEventListener("click", handleCorrectClick);
 
-startBtn.addEventListener('click', () => startDeck('spatial'));
-deck2Btn.addEventListener('click', () => startDeck('deck2'));
+startBtn.addEventListener('click', () => showDeckDetails('spatial', 'Spatial Directions'));
+deck2Btn.addEventListener('click', () => showDeckDetails('deck2', 'Deck 2'));
+
+// Deck Details Screen Listeners
+studyDeckBtn.addEventListener('click', () => {
+    if (selectedDeckKey) startDeck(selectedDeckKey);
+});
+
+editDeckBtn.addEventListener('click', () => {
+    hideAllScreens();
+    editDeckScreen.style.display = 'block';
+});
+
+detailsBackBtn.addEventListener('click', () => {
+    hideAllScreens();
+    mainMenuScreen.style.display = 'block';
+});
+
+// Edit Deck Screen Listeners
+addCardBtn.addEventListener('click', () => {
+    addCardModal.style.display = 'flex';
+});
+
+editBackBtn.addEventListener('click', () => {
+    hideAllScreens();
+    deckDetailsScreen.style.display = 'block';
+});
+
+// Add Card Modal Listeners
+closeModalBtn.addEventListener('click', () => {
+    addCardModal.style.display = 'none';
+});
+
+window.addEventListener('click', (event) => {
+    if (event.target === addCardModal) {
+        addCardModal.style.display = 'none';
+    }
+});
 
 backBtn.addEventListener('click', () => {
     flashcardScreen.style.display = 'none';
@@ -163,5 +234,27 @@ backBtn.addEventListener('click', () => {
 });
 
 createDeckBtn.addEventListener('click', () => {
-    alert("Deck creation feature coming soon");
+    const deckName = prompt("Enter a name for the new deck:");
+    if (deckName && deckName.trim() !== "") {
+        const deckKey = deckName.trim().toLowerCase().replace(/\s+/g, '-');
+        
+        if (decks[deckKey]) {
+            alert("A deck with this name already exists.");
+            return;
+        }
+
+        // Create empty deck
+        decks[deckKey] = [];
+
+        // Add to DOM
+        const deckList = document.getElementById('deck-list');
+        const newDeckBtn = document.createElement('button');
+        newDeckBtn.className = 'deck-btn';
+        newDeckBtn.id = deckKey + '-btn';
+        newDeckBtn.innerText = deckName.trim();
+        
+        newDeckBtn.addEventListener('click', () => showDeckDetails(deckKey, deckName.trim()));
+        
+        deckList.appendChild(newDeckBtn);
+    }
 });
