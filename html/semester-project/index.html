@@ -55,9 +55,24 @@
 
     <div id="add-card-modal" class="modal" style="display: none;">
         <div class="modal-content">
-            <span class="close-btn" id="close-modal-btn">&times;</span>
-            <h2>Add Card</h2>
-            <!-- Additional form inputs will be added here later -->
+            <div class="add-card-header"></div>
+            <div class="add-card-body">
+                <div class="add-card-left">
+                    <label for="card-prompt-input">Prompt</label>
+                    <input type="text" id="card-prompt-input" placeholder="Enter a question or title..." />
+                    <div id="image-dropzone">
+                        <input type="file" id="image-file-output" accept="image/*" />
+                        <div class="dropzone-placeholder">
+                            <p>Insert Image</p>
+                        </div>
+                        <div class="dropzone-preview" src="" alt="Image preview" />
+                    </div>
+                </div>  
+                <div class="add-card-divider"></div>
+                <div class="add-card-right"></div>
+            </div>
+            <div class="add-card-footer"></div>
+
         </div>
     </div>
 
