@@ -219,3 +219,30 @@ main {
     display: flex;
     flex-direction: column;
 }
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 28px 16px;
+    border-bottom: 1px solid var(--accent-green);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-green);
+}
+
+.add-card-modal-content .close-btn {
+    position: static;
+    font-size: 1.4rem;
+}
+
+.add-card-body {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    min-height: 0;
+}
