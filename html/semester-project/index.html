@@ -55,14 +55,23 @@
 
     <div id="add-card-modal" class="modal" style="display: none;">
         <div class="modal-content">
+
+            <!-- Modal Header -->
             <div class="add-card-header">
                 <h2>Add Card</h2>
                 <span class ="close-btn" id="close-modal-btn">&times;</span>
             </div>
+
+            <!-- Two-column body -->
             <div class="add-card-body">
+
+                <!-- Left Column -->
                 <div class="add-card-left">
+
                     <label for="card-prompt-input">Prompt</label>
                     <input type="text" id="card-prompt-input" placeholder="Enter a question or title..." />
+                    
+                    <!-- Image Dropzone -->
                     <div id="image-dropzone">
                         <input type="file" id="image-file-output" accept="image/*" />
                         <div class="dropzone-placeholder">
@@ -70,9 +79,24 @@
                         </div>
                         <div class="dropzone-preview" src="" alt="Image preview" />
                     </div>
-                </div>  
+                </div>
+
+                <!-- Vertical divider -->
                 <div class="add-card-divider"></div>
                 <div class="add-card-right"></div>
+                    <p class="right-col-label">Correct Area</p>
+
+                    <div id="correct-area-container">
+                        <img id="correct-area-bg" src="" alt="" draggable="false" />
+
+                        <div id=""correct-area-selector"></div>
+
+                        <div id="correct-area-placeholder">
+                            <p>Upload an image on the left to define the correct area.</p>
+                        </div>
+                    </div>
+
+
             </div>
             <div class="add-card-footer"></div>
 
