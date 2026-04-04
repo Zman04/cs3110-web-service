@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="An interactive flashcard application.">
     <title>Interactive Flashcards</title>
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=4">
 </head>
 
 <body>
@@ -54,12 +54,12 @@
     </div>
 
     <div id="add-card-modal" class="modal" style="display: none;">
-        <div class="modal-content">
+        <div class="modal-content add-card-modal-content">
 
             <!-- Modal Header -->
-            <div class="add-card-header">
+            <div class="modal-header">
                 <h2>Add Card</h2>
-                <span class ="close-btn" id="close-modal-btn">&times;</span>
+                <span class="close-btn" id="close-modal-btn">&times;</span>
             </div>
 
             <!-- Two-column body -->
@@ -70,35 +70,47 @@
 
                     <label for="card-prompt-input">Prompt</label>
                     <input type="text" id="card-prompt-input" placeholder="Enter a question or title..." />
-                    
+
                     <!-- Image Dropzone -->
                     <div id="image-dropzone">
-                        <input type="file" id="image-file-output" accept="image/*" />
-                        <div class="dropzone-placeholder">
+                        <input type="file" id="image-file-input" accept="image/*" />
+                        <div id="dropzone-placeholder">
+                            <span class="dropzone-icon">&#128247;</span>
                             <p>Insert Image</p>
+                            <p class="dropzone-hint">Click or drag &amp; drop</p>
                         </div>
-                        <div class="dropzone-preview" src="" alt="Image preview" />
+                        <img id="dropzone-preview" src="" alt="Image preview" />
                     </div>
+
                 </div>
 
                 <!-- Vertical divider -->
                 <div class="add-card-divider"></div>
 
+                <!-- Right Column: Correct-Area Selector -->
                 <div class="add-card-right">
                     <p class="right-col-label">Correct Area</p>
 
                     <div id="correct-area-container">
                         <img id="correct-area-bg" src="" alt="" draggable="false" />
                         <div id="correct-area-selector"></div>
+
+                        <!-- Placeholder shown when no image is uploaded yet -->
                         <div id="correct-area-placeholder">
                             <p>Upload an image on the left to define the correct area.</p>
                         </div>
                     </div>
-                </div> </div> <div class="add-card-footer">
+
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
                 <button class="menu-btn" id="save-card-btn">Save Card</button>
             </div>
 
-        </div> </div>
+        </div>
+    </div>
 
     <div id="flashcard-screen" style="display: none;">
 
@@ -124,7 +136,7 @@
             </div>
         </main>
     </div>
-    <script src="script.js?v=2"></script>
+    <script src="script.js?v=3"></script>
 </body>
 
 </html>
