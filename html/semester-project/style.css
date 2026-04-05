@@ -347,3 +347,117 @@ main {
 #image-dropzone.has-image #dropzone-preview {
     display: block;
 }
+
+/* ── Vertical Divider ──────────────────────────────────────────────────── */
+
+.add-card-divider {
+    width: 1px;
+    background-color: var(--accent-green);
+    margin: 16px 0;
+}
+
+/* ── Right Column ──────────────────────────────────────────────────────── */
+
+.add-card-right {
+    flex: 35;
+    /* ~35% of the body */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 22px 20px;
+}
+
+.right-col-label {
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--primary-green);
+}
+
+/* Container that the image and the draggable selector both live inside */
+#correct-area-container {
+    flex: 1;
+    position: relative;
+    border: 2px solid var(--accent-green);
+    border-radius: 8px;
+    background-color: #f0faf5;
+    overflow: hidden;
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Mirror of the uploaded image, displayed as the reference background */
+#correct-area-bg {
+    display: none;
+    /* shown only when an image is loaded */
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+#correct-area-container.has-image #correct-area-bg {
+    display: block;
+}
+
+#correct-area-container.has-image #correct-area-placeholder {
+    display: none;
+}
+
+/* Placeholder text before an image is uploaded */
+#correct-area-placeholder {
+    padding: 16px;
+    text-align: center;
+    color: var(--secondary-green);
+    font-size: 0.85rem;
+}
+
+#correct-area-placeholder p {
+    margin: 0;
+}
+
+/* The draggable / resizable green selector box */
+#correct-area-selector {
+    display: none;
+    /* shown once an image is loaded */
+    position: absolute;
+
+    /* Default size and starting position – JS will update these on drag */
+    width: 40%;
+    height: 30%;
+    top: 10%;
+    left: 10%;
+
+    background-color: rgba(64, 138, 113, 0.25);
+    /* semi-transparent green */
+    border: 2px dashed var(--primary-green);
+    border-radius: 4px;
+    box-sizing: border-box;
+    cursor: grab;
+
+    /* Browser-native resize handle in the bottom-right corner */
+    resize: both;
+    overflow: hidden;
+}
+
+#correct-area-selector:active {
+    cursor: grabbing;
+}
+
+#correct-area-container.has-image #correct-area-selector {
+    display: block;
+}
+
+/* ── Modal Footer ──────────────────────────────────────────────────────── */
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 14px 24px;
+    border-top: 1px solid var(--accent-green);
+}
