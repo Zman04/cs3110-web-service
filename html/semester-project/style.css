@@ -246,3 +246,104 @@ main {
     flex: 1;
     min-height: 0;
 }
+
+.add-card-left {
+    flex: 65;
+    /* ~65% of the body */
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 22px 24px;
+}
+
+.add-card-left label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--primary-green);
+}
+
+#card-prompt-input {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 1rem;
+    border: 2px solid var(--accent-green);
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+    color: var(--dark-green);
+}
+
+#card-prompt-input:focus {
+    border-color: var(--secondary-green);
+}
+
+/* Dropzone */
+#image-dropzone {
+    flex: 1;
+    border: 2px dashed var(--secondary-green);
+    border-radius: 8px;
+    background-color: #f0faf5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    min-height: 180px;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+#image-dropzone:hover {
+    background-color: #dff5eb;
+    border-color: var(--primary-green);
+}
+
+#image-file-input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+#dropzone-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--secondary-green);
+    pointer-events: none;
+    /* let clicks pass through to the file input */
+}
+
+.dropzone-icon {
+    font-size: 2.4rem;
+}
+
+#dropzone-placeholder p {
+    margin: 0;
+    font-weight: 600;
+}
+
+.dropzone-hint {
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+#dropzone-preview {
+    display: none;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+#image-dropzone.has-image #dropzone-placeholder {
+    display: none;
+}
+
+#image-dropzone.has-image #dropzone-preview {
+    display: block;
+}
