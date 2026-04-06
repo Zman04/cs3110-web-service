@@ -2,3 +2,7 @@ node_modules/
 .DS_Store
 *.log
 *.pdf
+hw5_feedback.md
+hw6.md
+server.key
+server.cert
