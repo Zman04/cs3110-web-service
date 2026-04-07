@@ -152,15 +152,12 @@ const handleRequest = async (req, res) => {
     }
 };
 
-// Load certificates and start HTTPS server
+// Start plain HTTP server (Nginx handles the HTTPS termination)
 sequelize.sync().then(() => {
-    const options = {
-        key: fs.readFileSync('server.key'),
-        cert: fs.readFileSync('server.cert')
-    };
+    // removed the options object and the fs.readFileSync calls
+    const server = http.createServer(handleRequest);
     
-    const server = http.createServer(options, handleRequest);
     server.listen(3000, () => {
-        console.log("Local server running on port 3000");
+        console.log("Local server running on port 3000 (Behind Nginx)");
     });
 });

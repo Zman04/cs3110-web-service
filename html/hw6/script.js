@@ -14,25 +14,31 @@ async function handleAuth(endpoint) {
 
     if (!usernameInput || !passwordInput) return alert("Please enter both fields.");
 
-    const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ username: usernameInput, password: passwordInput })
-    });
+    try {
+        const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ username: usernameInput, password: passwordInput })
+        });
 
-    if (res.ok) {
-        if (endpoint === '/api/login') {
-            const data = await res.json();
-            currentUser = data.username; // Store user in memory
-            authSection.style.display = 'none';
-            appSection.style.display = 'block';
-            loadItems();
+        if (res.ok) {
+            if (endpoint === '/api/login') {
+                const data = await res.json();
+                currentUser = data.username; // Store user in memory
+                authSection.style.display = 'none';
+                appSection.style.display = 'block';
+                loadItems();
+            } else {
+                alert("Registered successfully! You can now log in.");
+            }
         } else {
-            alert("Registered successfully! You can now log in.");
+            const errText = await res.text();
+            alert(`Server responded with an error: ${errText}`);
         }
-    } else {
-        const errText = await res.text();
-        alert(errText);
+    } catch (err) {
+        // If the request fails completely (e.g., connection refused), this alert will trigger
+        alert(`Network Error: The request failed to reach the server. Check your Nginx config. Details: ${err.message}`);
+        console.error("Fetch error:", err);
     }
 }
 
