@@ -1,4 +1,4 @@
-const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -159,8 +159,8 @@ sequelize.sync().then(() => {
         cert: fs.readFileSync('server.cert')
     };
     
-    const server = https.createServer(options, handleRequest);
+    const server = http.createServer(options, handleRequest);
     server.listen(3000, () => {
-        console.log("Secure server running on https://localhost:3000");
+        console.log("Local server running on port 3000");
     });
 });
