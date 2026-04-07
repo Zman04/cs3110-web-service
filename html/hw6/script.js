@@ -1,25 +1,63 @@
-// Grab the elements from the DOM
 const itemsContainer = document.getElementById('itemsContainer');
 const newItemInput = document.getElementById('newItemInput');
 const addBtn = document.getElementById('addBtn');
+const authSection = document.getElementById('authSection');
+const appSection = document.getElementById('appSection');
 
-// GET
+// State Management
+let currentUser = null;
+
+// AUTHENTICATION
+async function handleAuth(endpoint) {
+    const usernameInput = document.getElementById('username').value.trim();
+    const passwordInput = document.getElementById('password').value.trim();
+
+    if (!usernameInput || !passwordInput) return alert("Please enter both fields.");
+
+    const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ username: usernameInput, password: passwordInput })
+    });
+
+    if (res.ok) {
+        if (endpoint === '/api/login') {
+            const data = await res.json();
+            currentUser = data.username; // Store user in memory
+            authSection.style.display = 'none';
+            appSection.style.display = 'block';
+            loadItems();
+        } else {
+            alert("Registered successfully! You can now log in.");
+        }
+    } else {
+        const errText = await res.text();
+        alert(errText);
+    }
+}
+
+function logout() {
+    currentUser = null; // Clear memory
+    authSection.style.display = 'block';
+    appSection.style.display = 'none';
+    itemsContainer.innerHTML = '';
+}
+
+// CRUD OPERATIONS
 async function loadItems() {
-    const response = await fetch('/api');
+    if (!currentUser) return; // Don't load if not logged in
+
+    const response = await fetch(`/api?username=${currentUser}`);
     const items = await response.json();
 
-    // Clear the current list
     itemsContainer.innerText = '';
 
     items.forEach((item) => {
         const li = document.createElement('li');
-
-        // Ask for the item's name specifically
         li.innerText = item.name + " ";
 
         const editBtn = document.createElement('button');
         editBtn.innerText = 'Edit';
-        // Pass the database ID instead of the array index
         editBtn.onclick = () => editItem(item.id);
 
         const deleteBtn = document.createElement('button');
@@ -32,7 +70,6 @@ async function loadItems() {
     });
 }
 
-// POST
 addBtn.addEventListener('click', async () => {
     const newItem = newItemInput.value.trim();
     if (!newItem) return alert("Please enter an item.");
@@ -40,36 +77,30 @@ addBtn.addEventListener('click', async () => {
     await fetch('/api', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ newItem: newItem })
+        body: new URLSearchParams({ newItem: newItem, username: currentUser })
     });
 
     newItemInput.value = '';
     loadItems();
 });
 
-// PUT
 async function editItem(id) {
     const updatedItem = prompt("Enter the new name for this item:");
     if (!updatedItem) return;
 
-    // We pass the true database ID to the backend
     await fetch(`/api?index=${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ newItem: updatedItem })
+        body: new URLSearchParams({ newItem: updatedItem, username: currentUser })
     });
 
     loadItems();
 }
 
-// DELETE
 async function deleteItem(id) {
-    // We pass the true database ID to the backend
-    await fetch(`/api?index=${id}`, {
+    await fetch(`/api?index=${id}&username=${currentUser}`, {
         method: 'DELETE'
     });
 
     loadItems();
 }
-
-loadItems();
