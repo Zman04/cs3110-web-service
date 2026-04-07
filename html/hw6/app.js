@@ -158,6 +158,6 @@ sequelize.sync().then(() => {
     const server = http.createServer(handleRequest);
     
     server.listen(3001, () => {
-        console.log("Local server running on port 3000 (Behind Nginx)");
+        console.log("Local server running on port 3001 (Behind Nginx)");
     });
 });
