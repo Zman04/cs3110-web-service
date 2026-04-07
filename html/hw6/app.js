@@ -157,7 +157,7 @@ sequelize.sync().then(() => {
     // removed the options object and the fs.readFileSync calls
     const server = http.createServer(handleRequest);
     
-    server.listen(3001, () => {
-        console.log("Local server running on port 3001 (Behind Nginx)");
+    server.listen(3000, () => {
+        console.log("Local server running on port 3000 (Behind Nginx)");
     });
 });
