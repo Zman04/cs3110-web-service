@@ -1,1 +1,3 @@
-Authenticated and Authorized: https://zaustin3-subdomain.ignorelist.com:8443
+hw7: https://zaustin3-subdomain.ignorelist.com
+
+it should be secure now
