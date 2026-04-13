@@ -5,14 +5,23 @@ const wss = new WebSocket.Server({ port: 8080 });
 
 console.log('WebSocket server is running on ws://localhost:8080');
 
+const messageHistory = [];
+
 wss.on('connection', (ws) => {
   console.log('New client connected');
+
+  // No Dementia
+  messageHistory.forEach((pastMessage) => {
+    ws.send(pastMessage);
+  });
 
   // Message event handler
   ws.on('message', (message) => {
     // Convert the message buffer to a string so it displays correctly
     const textMessage = message.toString();
     console.log(`Received: ${textMessage}`);
+
+    messageHistory.push(textMessage);
     
     // Loop through all connected clients and broadcast
     wss.clients.forEach((client) => {
