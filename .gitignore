@@ -8,3 +8,4 @@ server.key
 server.cert
 *.sh
 *.zip
+*.tgz
