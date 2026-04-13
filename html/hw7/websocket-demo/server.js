@@ -1,42 +1,28 @@
 const WebSocket = require('ws');
 
-// Create a WebSocket server on port 8080
 const wss = new WebSocket.Server({ port: 8080 });
-
-console.log('WebSocket server is running on ws://localhost:8080');
-
 const messageHistory = [];
 
-wss.on('connection', (ws) => {
-  console.log('New client connected');
+wss.on('connection', (ws, req) => {
+  // Get the real IP passed from Nginx
+  const userIP = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  console.log(`New client connected from ${userIP}`);
+  
+  messageHistory.forEach((pastMessage) => ws.send(pastMessage));
 
-  // No Dementia
-  messageHistory.forEach((pastMessage) => {
-    ws.send(pastMessage);
-  });
-
-  // Message event handler
   ws.on('message', (message) => {
-    // Convert the message buffer to a string so it displays correctly
     const textMessage = message.toString();
-    console.log(`Received: ${textMessage}`);
-
-    messageHistory.push(textMessage);
-
-    if (messageHistory.length > 10) {
-      messageHistory.shift(); // Removes the oldest message
-    }
+    const formattedMessage = `[${userIP}]: ${textMessage}`;
     
-    // Loop through all connected clients and broadcast
+    messageHistory.push(formattedMessage);
+    if (messageHistory.length > 50) messageHistory.shift();
+    
     wss.clients.forEach((client) => {
-      // Check if the connection is fully open before trying to send
       if (client.readyState === WebSocket.OPEN) {
-        client.send(textMessage);
+        client.send(formattedMessage);
       }
     });
   });
-
-  ws.on('close', () => {
-    console.log('Client disconnected');
-  });
 });
+
+console.log('WebSocket server running on port 8080');

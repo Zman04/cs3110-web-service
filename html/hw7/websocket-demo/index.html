@@ -34,8 +34,7 @@
     const messageInput = document.getElementById('messageInput');
 
     // Connect to the WebSocket server
-    const ws = new WebSocket('ws://localhost:8080');
-
+    const ws = new WebSocket('wss://zaustin3-subdomain.ignorelist.com/ws/');
     // Connection opened
     ws.onopen = () => {
       status.textContent = 'Connected to server';
