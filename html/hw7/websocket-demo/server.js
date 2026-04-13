@@ -22,6 +22,10 @@ wss.on('connection', (ws) => {
     console.log(`Received: ${textMessage}`);
 
     messageHistory.push(textMessage);
+
+    if (messageHistory.length > 10) {
+      messageHistory.shift(); // Removes the oldest message
+    }
     
     // Loop through all connected clients and broadcast
     wss.clients.forEach((client) => {
