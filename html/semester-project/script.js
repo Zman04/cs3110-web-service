@@ -128,7 +128,7 @@ function resetAddCardForm() {
 
     correctAreaBg.src = '';
     correctAreaBg.style.display = 'none';
-    correctAreaSelector.style.display = 'block';
+    correctAreaSelector.style.display = 'none';
     correctAreaPlaceholder.style.display = 'block';
 }
 
@@ -333,6 +333,10 @@ imageFileInput.addEventListener('change', (event) => {
 
         // Keep selector hidden for now
         correctAreaSelector.style.display = 'block';
+
+        selectorRectPct = { x: 10, y: -100, width: 30, height: 30 };
+        correctAreaSelector.style.display = 'block';
+        requestAnimationFrame(renderSelectorFromPct);
     };
 
     reader.readAsDataURL(file);
@@ -355,8 +359,7 @@ saveCardBtn.addEventListener('click', () => {
         id: Date.now(),
         imageSrc: pendingImageSrc,
         question: promptText || 'Untitled card',
-        // temporary default: whole image is correct until selector logic is added
-        correctArea: { x: 0, y: 0, width: 100, height: 100 },
+        correctArea: { ...selectorRectPct},
         explanation: ''
     };
 
@@ -377,4 +380,23 @@ function getImageBoundsInContainer() {
         width: i.width,
         height: i.height
     };
+}
+
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+}
+
+function renderSelectorFromPct() {
+    const bounds = getImageBoundsInContainer();
+    if (!bounds.width || !bounds.height) return;
+
+    const leftPx = bounds.left + (selectorRectPct.x / 100) * bounds.width;
+    const topPx = bounds.top + (selectorRectPct.y / 100) * bounds.height;
+    const widthPx = (selectorRectPct.width / 100) * bounds.width;
+    const heightPx = (selectorRectPct.height / 100) * bounds.height;
+
+    correctAreaSelector.style.left = `${leftPx}px`;
+    correctAreaSelector.style.top = `${topPx}px`;
+    correctAreaSelector.style.width = `${widthPx}px`;
+    correctAreaSelector.style.height = `${heightPx}px`;
 }
