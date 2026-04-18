@@ -85,6 +85,7 @@ let currentDeck = decks.spatial;
 let scoreCorrectCounter = 0;
 let scoreIncorrectCounter = 0;
 let currentCardIndex = 0;
+let selectorRectPct = {x: 10, y: 10, width: 30, height: 30};
 
 // Loads the flashcard data onto the screen
 function loadFlashcard(index) {
@@ -127,7 +128,7 @@ function resetAddCardForm() {
 
     correctAreaBg.src = '';
     correctAreaBg.style.display = 'none';
-    correctAreaSelector.style.display = 'none';
+    correctAreaSelector.style.display = 'block';
     correctAreaPlaceholder.style.display = 'block';
 }
 
@@ -331,7 +332,7 @@ imageFileInput.addEventListener('change', (event) => {
         correctAreaPlaceholder.style.display = 'none';
 
         // Keep selector hidden for now
-        correctAreaSelector.style.display = 'none';
+        correctAreaSelector.style.display = 'block';
     };
 
     reader.readAsDataURL(file);
@@ -365,3 +366,15 @@ saveCardBtn.addEventListener('click', () => {
     addCardModal.style.display = 'none';
     resetAddCardForm();
 });
+
+function getImageBoundsInContainer() {
+    const c = correctAreaContainer.getBoundingClientRect();
+    const i = correctAreaBg.getBoundingClientRect();
+
+    return {
+        left: i.left - c.left,
+        top: i.top - c.top,
+        width: i.width,
+        height: i.height
+    };
+}
