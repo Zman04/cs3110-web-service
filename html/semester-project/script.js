@@ -7,7 +7,8 @@ const flashcardImage = document.getElementById('flashcard-image');
 const flashcardQuestion = document.getElementById('flashcard-question');
 const flashcardExplanation = document.getElementById('flashcard-explanation');
 
-const loginScreen = document.getElementById('login-screen');const loginBtn = document.getElementById('login-btn');
+const loginScreen = document.getElementById('login-screen');
+const loginBtn = document.getElementById('login-btn');
 const logoutBtn = document.getElementById('logout-btn');
 
 const mainMenuScreen = document.getElementById('main-menu-screen');
@@ -29,6 +30,16 @@ const editBackBtn = document.getElementById('edit-back-btn');
 
 const addCardModal = document.getElementById('add-card-modal');
 const closeModalBtn = document.getElementById('close-modal-btn');
+
+const saveCardBtn = document.getElementById('save-card-btn');
+const cardPromptInput = document.getElementById('card-prompt-input');
+const imageFileInput = document.getElementById('image-file-input');
+const dropzonePreview = document.getElementById('dropzone-preview');
+const dropzonePlaceholder = document.getElementById('dropzone-placeholder');
+const correctAreaContainer = document.getElementById('correct-area-container');
+const correctAreaSelector = document.getElementById('correct-area-selector');
+const correctAreaPlaceholder = document.getElementById('correct-area-placeholder');
+const correctAreaBg = document.getElementById('correct-area-bg');
 
 let selectedDeckKey = null;
 let selectedDeckName = null;
@@ -101,6 +112,23 @@ function loadFlashcard(index) {
     if (!document.getElementById('card-correct')) {
         cardIncorrect.appendChild(cardCorrect);
     }
+}
+
+let pendingImageSrc = '';
+
+function resetAddCardForm() {
+    pendingImageSrc = '';
+    cardPromptInput.value = '';
+    imageFileInput.value = '';
+
+    dropzonePreview.src = '';
+    dropzonePlaceholder.style.display = 'block';
+    dropzonePreview.style.display = 'none';
+
+    correctAreaBg.src = '';
+    correctAreaBg.style.display = 'none';
+    correctAreaSelector.style.display = 'none';
+    correctAreaPlaceholder.style.display = 'block';
 }
 
 // handleIncorrectClick handles clicks anywhere on the image outside the green box
@@ -227,6 +255,7 @@ detailsBackBtn.addEventListener('click', () => {
 
 // Edit Deck Screen Listeners
 addCardBtn.addEventListener('click', () => {
+    resetAddCardForm();
     addCardModal.style.display = 'flex';
 });
 
@@ -275,4 +304,64 @@ createDeckBtn.addEventListener('click', () => {
         
         deckList.appendChild(newDeckBtn);
     }
+});
+
+imageFileInput.addEventListener('change', (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        alert('Please upload an image file.');
+        imageFileInput.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+        pendingImageSrc = reader.result;
+
+        // Left preview
+        dropzonePreview.src = pendingImageSrc;
+        dropzonePreview.style.display = 'block';
+        dropzonePlaceholder.style.display = 'none';
+
+        // Right panel background
+        correctAreaBg.src = pendingImageSrc;
+        correctAreaBg.style.display = 'block';
+        correctAreaPlaceholder.style.display = 'none';
+
+        // Keep selector hidden for now
+        correctAreaSelector.style.display = 'none';
+    };
+
+    reader.readAsDataURL(file);
+});
+
+saveCardBtn.addEventListener('click', () => {
+    if (!selectedDeckKey || !decks[selectedDeckKey]) {
+        alert('No deck selected. Go back and choose a deck first.');
+        return;
+    }
+
+    if (!pendingImageSrc) {
+        alert('Please upload an image before saving.');
+        return;
+    }
+
+    const promptText = cardPromptInput.value.trim();
+
+    const newCard = {
+        id: Date.now(),
+        imageSrc: pendingImageSrc,
+        question: promptText || 'Untitled card',
+        // temporary default: whole image is correct until selector logic is added
+        correctArea: { x: 0, y: 0, width: 100, height: 100 },
+        explanation: ''
+    };
+
+    decks[selectedDeckKey].push(newCard);
+
+    alert('Card saved to deck.');
+    addCardModal.style.display = 'none';
+    resetAddCardForm();
 });
