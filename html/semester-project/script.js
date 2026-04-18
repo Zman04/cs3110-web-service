@@ -224,6 +224,13 @@ function showStartScreen() {
     loginScreen.style.display = 'block';
 }
 
+function deleteCardAtIndex(cardIndex) {
+    if (!selectedDeckKey || !decks[selectedDeckKey]) return;
+
+    decks[selectedDeckKey].splice(cardIndex, 1);
+    renderCardTitleList(selectedDeckKey);
+}
+
 function renderCardTitleList(deckKey) {
     cardListContainer.replaceChildren();
 
@@ -239,6 +246,10 @@ function renderCardTitleList(deckKey) {
     deck.forEach((card, index) => {
         const item = document.createElement('div');
         item.className = 'card-list-item';
+        item.style.display = 'flex';
+        item.style.alignItems = 'center';
+        item.style.justifyContent = 'space-between';
+        item.style.gap = '8px';
         item.style.padding = '8px 10px';
         item.style.borderBottom = '1px solid #e6efe9';
 
@@ -246,7 +257,18 @@ function renderCardTitleList(deckKey) {
             ? card.question
             : `Untitled card ${index + 1}`;
 
-        item.textContent = `${index + 1}. ${title}`;
+        const titleText = document.createElement('span');
+        titleText.innerText = `${index + 1}. ${title}`;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.innerText = 'D';
+        deleteBtn.addEventListener('click', () => {
+            deleteCardAtIndex(index);
+        });
+
+        item.appendChild(titleText);
+        item.appendChild(deleteBtn);
         cardListContainer.appendChild(item);
     });
 }
@@ -364,7 +386,7 @@ imageFileInput.addEventListener('change', (event) => {
         // Keep selector hidden for now
         correctAreaSelector.style.display = 'block';
 
-        selectorRectPct = { x: 10, y: -100, width: 30, height: 30 };
+        selectorRectPct = { x: 10, y: 10, width: 30, height: 30 };
         correctAreaSelector.style.display = 'block';
         requestAnimationFrame(renderSelectorFromPct);
     };
