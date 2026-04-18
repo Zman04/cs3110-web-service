@@ -34,6 +34,7 @@ const closeModalBtn = document.getElementById('close-modal-btn');
 const saveCardBtn = document.getElementById('save-card-btn');
 const cardPromptInput = document.getElementById('card-prompt-input');
 const imageFileInput = document.getElementById('image-file-input');
+const cardListContainer = document.getElementById('card-list-container');
 const dropzonePreview = document.getElementById('dropzone-preview');
 const dropzonePlaceholder = document.getElementById('dropzone-placeholder');
 const correctAreaContainer = document.getElementById('correct-area-container');
@@ -223,6 +224,33 @@ function showStartScreen() {
     loginScreen.style.display = 'block';
 }
 
+function renderCardTitleList(deckKey) {
+    cardListContainer.replaceChildren();
+
+    const deck = decks[deckKey] || [];
+    if (deck.length === 0) {
+        const emptyState = document.createElement('p');
+        emptyState.style.padding = '10px';
+        emptyState.innerText = 'No cards yet.';
+        cardListContainer.appendChild(emptyState);
+        return;
+    }
+
+    deck.forEach((card, index) => {
+        const item = document.createElement('div');
+        item.className = 'card-list-item';
+        item.style.padding = '8px 10px';
+        item.style.borderBottom = '1px solid #e6efe9';
+
+        const title = card.question && card.question.trim() !== ''
+            ? card.question
+            : `Untitled card ${index + 1}`;
+
+        item.textContent = `${index + 1}. ${title}`;
+        cardListContainer.appendChild(item);
+    });
+}
+
 // --- Event Listeners ---
 loginBtn.addEventListener('click', () => {
     hideAllScreens();
@@ -248,6 +276,7 @@ studyDeckBtn.addEventListener('click', () => {
 editDeckBtn.addEventListener('click', () => {
     hideAllScreens();
     editDeckScreen.style.display = 'block';
+    renderCardTitleList(selectedDeckKey);
 });
 
 detailsBackBtn.addEventListener('click', () => {
@@ -365,6 +394,7 @@ saveCardBtn.addEventListener('click', () => {
     };
 
     decks[selectedDeckKey].push(newCard);
+    renderCardTitleList(selectedDeckKey);
 
     alert('Card saved to deck.');
     addCardModal.style.display = 'none';
