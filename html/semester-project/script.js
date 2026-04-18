@@ -86,6 +86,7 @@ let scoreCorrectCounter = 0;
 let scoreIncorrectCounter = 0;
 let currentCardIndex = 0;
 let selectorRectPct = {x: 10, y: 10, width: 30, height: 30};
+let dragState = null;
 
 // Loads the flashcard data onto the screen
 function loadFlashcard(index) {
@@ -369,6 +370,45 @@ saveCardBtn.addEventListener('click', () => {
     addCardModal.style.display = 'none';
     resetAddCardForm();
 });
+correctAreaSelector.addEventListener('pointerdown', (event) => {
+    if (!pendingImageSrc) return;
+
+    const selectorRect = correctAreaSelector.getBoundingClientRect();
+    const containerRect = correctAreaContainer.getBoundingClientRect();
+
+    dragState = {
+        offsetX: event.clientX - selectorRect.left,
+        offsetY: event.clientY - selectorRect.top,
+        selectorWidth: selectorRect.width,
+        selectorHeight: selectorRect.height,
+        containerLeft: containerRect.left,
+        containerTop: containerRect.top
+    };
+
+    correctAreaSelector.setPointerCapture(event.pointerId);
+});
+
+window.addEventListener('pointermove', (event) => {
+    if (!dragState) return;
+
+    const bounds = getImageBoundsInContainer();
+
+    let newLeftPx = event.clientX - dragState.containerLeft - dragState.offsetX;
+    let newTopPx = event.clientY - dragState.containerTop - dragState.offsetY;
+
+    newLeftPx = clamp(newLeftPx, bounds.left, bounds.left + bounds.width - dragState.selectorWidth);
+    newTopPx = clamp(newTopPx, bounds.top, bounds.top + bounds.height - dragState.selectorHeight);
+
+    selectorRectPct.x = ((newLeftPx - bounds.left) / bounds.width) * 100;
+    selectorRectPct.y = ((newTopPx - bounds.top) / bounds.height) * 100;
+
+    renderSelectorFromPct();
+});
+
+window.addEventListener('pointerup', () => {
+    dragState = null;
+});
+
 
 function getImageBoundsInContainer() {
     const c = correctAreaContainer.getBoundingClientRect();
