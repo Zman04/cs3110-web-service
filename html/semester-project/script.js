@@ -7,6 +7,9 @@ const flashcardImage = document.getElementById('flashcard-image');
 const flashcardQuestion = document.getElementById('flashcard-question');
 const flashcardExplanation = document.getElementById('flashcard-explanation');
 
+const loginScreen = document.getElementById('login-screen');const loginBtn = document.getElementById('login-btn');
+const logoutBtn = document.getElementById('logout-btn');
+
 const mainMenuScreen = document.getElementById('main-menu-screen');
 const flashcardScreen = document.getElementById('flashcard-screen');
 const startBtn = document.getElementById('start-btn');
@@ -177,6 +180,7 @@ function showDeckDetails(deckKey, deckName) {
 }
 
 function hideAllScreens() {
+    loginScreen.style.display = 'none';
     mainMenuScreen.style.display = 'none';
     flashcardScreen.style.display = 'none';
     deckDetailsScreen.style.display = 'none';
@@ -184,7 +188,21 @@ function hideAllScreens() {
     addCardModal.style.display = 'none';
 }
 
+function showStartScreen() {
+    hideAllScreens();
+    loginScreen.style.display = 'block';
+}
+
 // --- Event Listeners ---
+loginBtn.addEventListener('click', () => {
+    hideAllScreens();
+    mainMenuScreen.style.display = 'block';
+});
+
+logoutBtn.addEventListener('click', () => {
+    showStartScreen();
+});
+
 document.addEventListener("keydown", handleReset);
 cardIncorrect.addEventListener("click", handleIncorrectClick);
 cardCorrect.addEventListener("click", handleCorrectClick);
