@@ -7,6 +7,10 @@ const flashcardImage = document.getElementById('flashcard-image');
 const flashcardQuestion = document.getElementById('flashcard-question');
 const flashcardExplanation = document.getElementById('flashcard-explanation');
 
+const loginScreen = document.getElementById('login-screen');
+const loginBtn = document.getElementById('login-btn');
+const logoutBtn = document.getElementById('logout-btn');
+
 const mainMenuScreen = document.getElementById('main-menu-screen');
 const flashcardScreen = document.getElementById('flashcard-screen');
 const startBtn = document.getElementById('start-btn');
@@ -26,6 +30,17 @@ const editBackBtn = document.getElementById('edit-back-btn');
 
 const addCardModal = document.getElementById('add-card-modal');
 const closeModalBtn = document.getElementById('close-modal-btn');
+
+const saveCardBtn = document.getElementById('save-card-btn');
+const cardPromptInput = document.getElementById('card-prompt-input');
+const imageFileInput = document.getElementById('image-file-input');
+const cardListContainer = document.getElementById('card-list-container');
+const dropzonePreview = document.getElementById('dropzone-preview');
+const dropzonePlaceholder = document.getElementById('dropzone-placeholder');
+const correctAreaContainer = document.getElementById('correct-area-container');
+const correctAreaSelector = document.getElementById('correct-area-selector');
+const correctAreaPlaceholder = document.getElementById('correct-area-placeholder');
+const correctAreaBg = document.getElementById('correct-area-bg');
 
 let selectedDeckKey = null;
 let selectedDeckName = null;
@@ -71,6 +86,9 @@ let currentDeck = decks.spatial;
 let scoreCorrectCounter = 0;
 let scoreIncorrectCounter = 0;
 let currentCardIndex = 0;
+let selectorRectPct = {x: 10, y: 10, width: 30, height: 30};
+let dragState = null;
+let editingCardIndex = null;
 
 // Loads the flashcard data onto the screen
 function loadFlashcard(index) {
@@ -98,6 +116,25 @@ function loadFlashcard(index) {
     if (!document.getElementById('card-correct')) {
         cardIncorrect.appendChild(cardCorrect);
     }
+}
+
+let pendingImageSrc = '';
+
+function resetAddCardForm() {
+    pendingImageSrc = '';
+    editingCardIndex = null;
+    saveCardBtn.innerText = 'Save Card';
+    cardPromptInput.value = '';
+    imageFileInput.value = '';
+
+    dropzonePreview.src = '';
+    dropzonePlaceholder.style.display = 'block';
+    dropzonePreview.style.display = 'none';
+
+    correctAreaBg.src = '';
+    correctAreaBg.style.display = 'none';
+    correctAreaSelector.style.display = 'none';
+    correctAreaPlaceholder.style.display = 'block';
 }
 
 // handleIncorrectClick handles clicks anywhere on the image outside the green box
@@ -177,6 +214,7 @@ function showDeckDetails(deckKey, deckName) {
 }
 
 function hideAllScreens() {
+    loginScreen.style.display = 'none';
     mainMenuScreen.style.display = 'none';
     flashcardScreen.style.display = 'none';
     deckDetailsScreen.style.display = 'none';
@@ -184,7 +222,122 @@ function hideAllScreens() {
     addCardModal.style.display = 'none';
 }
 
+function showStartScreen() {
+    hideAllScreens();
+    loginScreen.style.display = 'block';
+}
+
+function deleteCardAtIndex(cardIndex) {
+    if (!selectedDeckKey || !decks[selectedDeckKey]) return;
+
+    decks[selectedDeckKey].splice(cardIndex, 1);
+    renderCardTitleList(selectedDeckKey);
+}
+
+function editCardAtIndex(cardIndex) {
+    if (!selectedDeckKey || !decks[selectedDeckKey]) return;
+
+    // Grab the card from the currently selected deck by index.
+    const cardToEdit = decks[selectedDeckKey][cardIndex];
+    if (!cardToEdit) return;
+
+    // Track that the modal is editing an existing card (not creating a new one).
+    editingCardIndex = cardIndex;
+    saveCardBtn.innerText = 'Update Card';
+
+    // Pre-fill the form with existing card values. Fallback to empty text if missing.
+    cardPromptInput.value = cardToEdit.question || '';
+    pendingImageSrc = cardToEdit.imageSrc || '';
+    // If this card already has a correctArea, clone it.
+    // Otherwise use a default selector rectangle.
+    if (cardToEdit.correctArea) {
+        selectorRectPct = { ...cardToEdit.correctArea };
+    } else {
+        selectorRectPct = { x: 10, y: 10, width: 30, height: 30 };
+    }
+
+    // Sync the preview UI so the modal shows the current card image and area.
+    dropzonePreview.src = pendingImageSrc;
+    dropzonePlaceholder.style.display = 'none';
+    dropzonePreview.style.display = 'block';
+
+    correctAreaBg.src = pendingImageSrc;
+    correctAreaBg.style.display = 'block';
+    correctAreaSelector.style.display = 'block';
+    correctAreaPlaceholder.style.display = 'none';
+    addCardModal.style.display = 'flex';
+
+    requestAnimationFrame(renderSelectorFromPct);
+}
+
+function renderCardTitleList(deckKey) {
+    // Clear existing rows before rebuilding from current deck data.
+    cardListContainer.replaceChildren();
+
+    const deck = decks[deckKey] || [];
+    if (deck.length === 0) {
+        const emptyState = document.createElement('p');
+        emptyState.style.padding = '10px';
+        emptyState.innerText = 'No cards yet.';
+        cardListContainer.appendChild(emptyState);
+        return;
+    }
+
+    deck.forEach((card, index) => {
+        const item = document.createElement('div');
+        item.className = 'card-list-item';
+        item.style.display = 'flex';
+        item.style.alignItems = 'center';
+        item.style.justifyContent = 'space-between';
+        item.style.gap = '8px';
+        item.style.padding = '8px 10px';
+        item.style.borderBottom = '1px solid #e6efe9';
+
+        // Use the question as the title when present, otherwise show a fallback label.
+        let title = `Untitled card ${index + 1}`;
+        if (card.question && card.question.trim() !== '') {
+            title = card.question;
+        }
+
+        const titleText = document.createElement('span');
+        titleText.innerText = `${index + 1}. ${title}`;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.innerText = 'D';
+        deleteBtn.addEventListener('click', () => {
+            deleteCardAtIndex(index);
+        });
+
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.innerText = 'E';
+        editBtn.addEventListener('click', () => {
+            editCardAtIndex(index);
+        });
+
+        const actionButtons = document.createElement('div');
+        actionButtons.style.display = 'flex';
+        actionButtons.style.gap = '6px';
+        actionButtons.appendChild(deleteBtn);
+        actionButtons.appendChild(editBtn);
+
+        item.appendChild(titleText);
+        item.appendChild(actionButtons);
+        cardListContainer.appendChild(item);
+    });
+}
+
 // --- Event Listeners ---
+loginBtn.addEventListener('click', () => {
+    hideAllScreens();
+    mainMenuScreen.style.display = 'block';
+});
+
+logoutBtn.addEventListener('click', () => {
+    showStartScreen();
+});
+
 document.addEventListener("keydown", handleReset);
 cardIncorrect.addEventListener("click", handleIncorrectClick);
 cardCorrect.addEventListener("click", handleCorrectClick);
@@ -200,6 +353,7 @@ studyDeckBtn.addEventListener('click', () => {
 editDeckBtn.addEventListener('click', () => {
     hideAllScreens();
     editDeckScreen.style.display = 'block';
+    renderCardTitleList(selectedDeckKey);
 });
 
 detailsBackBtn.addEventListener('click', () => {
@@ -209,6 +363,7 @@ detailsBackBtn.addEventListener('click', () => {
 
 // Edit Deck Screen Listeners
 addCardBtn.addEventListener('click', () => {
+    resetAddCardForm();
     addCardModal.style.display = 'flex';
 });
 
@@ -258,3 +413,154 @@ createDeckBtn.addEventListener('click', () => {
         deckList.appendChild(newDeckBtn);
     }
 });
+
+imageFileInput.addEventListener('change', (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        alert('Please upload an image file.');
+        imageFileInput.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+        pendingImageSrc = reader.result;
+
+        // Left preview
+        dropzonePreview.src = pendingImageSrc;
+        dropzonePreview.style.display = 'block';
+        dropzonePlaceholder.style.display = 'none';
+
+        // Right panel background
+        correctAreaBg.src = pendingImageSrc;
+        correctAreaBg.style.display = 'block';
+        correctAreaPlaceholder.style.display = 'none';
+
+        // Keep selector hidden for now
+        correctAreaSelector.style.display = 'block';
+
+        selectorRectPct = { x: 10, y: 10, width: 30, height: 30 };
+        correctAreaSelector.style.display = 'block';
+        requestAnimationFrame(renderSelectorFromPct);
+    };
+
+    reader.readAsDataURL(file);
+});
+
+saveCardBtn.addEventListener('click', () => {
+    if (!selectedDeckKey || !decks[selectedDeckKey]) {
+        alert('No deck selected. Go back and choose a deck first.');
+        return;
+    }
+
+    if (!pendingImageSrc) {
+        alert('Please upload an image before saving.');
+        return;
+    }
+
+    const promptText = cardPromptInput.value.trim();
+
+    let cardId = Date.now();
+    // If we're editing, keep the existing card id so references stay stable.
+    if (editingCardIndex !== null) {
+        cardId = decks[selectedDeckKey][editingCardIndex].id;
+    }
+
+    const newCard = {
+        id: cardId,
+        imageSrc: pendingImageSrc,
+        question: promptText || 'Untitled card',
+        correctArea: { ...selectorRectPct},
+        explanation: ''
+    };
+
+    // Create vs update:
+    // - no editing index => append new card
+    // - editing index exists => replace that specific card
+    if (editingCardIndex === null) {
+        decks[selectedDeckKey].push(newCard);
+    } else {
+        decks[selectedDeckKey][editingCardIndex] = newCard;
+    }
+    renderCardTitleList(selectedDeckKey);
+
+    if (editingCardIndex === null) {
+        alert('Card saved to deck.');
+    } else {
+        alert('Card updated.');
+    }
+    addCardModal.style.display = 'none';
+    resetAddCardForm();
+});
+correctAreaSelector.addEventListener('pointerdown', (event) => {
+    if (!pendingImageSrc) return;
+
+    const selectorRect = correctAreaSelector.getBoundingClientRect();
+    const containerRect = correctAreaContainer.getBoundingClientRect();
+
+    dragState = {
+        offsetX: event.clientX - selectorRect.left,
+        offsetY: event.clientY - selectorRect.top,
+        selectorWidth: selectorRect.width,
+        selectorHeight: selectorRect.height,
+        containerLeft: containerRect.left,
+        containerTop: containerRect.top
+    };
+
+    correctAreaSelector.setPointerCapture(event.pointerId);
+});
+
+window.addEventListener('pointermove', (event) => {
+    if (!dragState) return;
+
+    const bounds = getImageBoundsInContainer();
+
+    let newLeftPx = event.clientX - dragState.containerLeft - dragState.offsetX;
+    let newTopPx = event.clientY - dragState.containerTop - dragState.offsetY;
+
+    newLeftPx = clamp(newLeftPx, bounds.left, bounds.left + bounds.width - dragState.selectorWidth);
+    newTopPx = clamp(newTopPx, bounds.top, bounds.top + bounds.height - dragState.selectorHeight);
+
+    selectorRectPct.x = ((newLeftPx - bounds.left) / bounds.width) * 100;
+    selectorRectPct.y = ((newTopPx - bounds.top) / bounds.height) * 100;
+
+    renderSelectorFromPct();
+});
+
+window.addEventListener('pointerup', () => {
+    dragState = null;
+});
+
+
+function getImageBoundsInContainer() {
+    const c = correctAreaContainer.getBoundingClientRect();
+    const i = correctAreaBg.getBoundingClientRect();
+
+    return {
+        left: i.left - c.left,
+        top: i.top - c.top,
+        width: i.width,
+        height: i.height
+    };
+}
+
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+}
+
+function renderSelectorFromPct() {
+    const bounds = getImageBoundsInContainer();
+    if (!bounds.width || !bounds.height) return;
+
+    const leftPx = bounds.left + (selectorRectPct.x / 100) * bounds.width;
+    const topPx = bounds.top + (selectorRectPct.y / 100) * bounds.height;
+    const widthPx = (selectorRectPct.width / 100) * bounds.width;
+    const heightPx = (selectorRectPct.height / 100) * bounds.height;
+
+    correctAreaSelector.style.left = `${leftPx}px`;
+    correctAreaSelector.style.top = `${topPx}px`;
+    correctAreaSelector.style.width = `${widthPx}px`;
+    correctAreaSelector.style.height = `${heightPx}px`;
+}

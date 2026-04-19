@@ -9,3 +9,5 @@ server.cert
 *.sh
 *.zip
 *.tgz
+*.sqlite
+*.sqlite3
