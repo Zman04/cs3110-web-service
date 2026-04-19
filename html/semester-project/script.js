@@ -88,6 +88,7 @@ let scoreIncorrectCounter = 0;
 let currentCardIndex = 0;
 let selectorRectPct = {x: 10, y: 10, width: 30, height: 30};
 let dragState = null;
+let editingCardIndex = null;
 
 // Loads the flashcard data onto the screen
 function loadFlashcard(index) {
@@ -121,6 +122,8 @@ let pendingImageSrc = '';
 
 function resetAddCardForm() {
     pendingImageSrc = '';
+    editingCardIndex = null;
+    saveCardBtn.innerText = 'Save Card';
     cardPromptInput.value = '';
     imageFileInput.value = '';
 
@@ -231,7 +234,44 @@ function deleteCardAtIndex(cardIndex) {
     renderCardTitleList(selectedDeckKey);
 }
 
+function editCardAtIndex(cardIndex) {
+    if (!selectedDeckKey || !decks[selectedDeckKey]) return;
+
+    // Grab the card from the currently selected deck by index.
+    const cardToEdit = decks[selectedDeckKey][cardIndex];
+    if (!cardToEdit) return;
+
+    // Track that the modal is editing an existing card (not creating a new one).
+    editingCardIndex = cardIndex;
+    saveCardBtn.innerText = 'Update Card';
+
+    // Pre-fill the form with existing card values. Fallback to empty text if missing.
+    cardPromptInput.value = cardToEdit.question || '';
+    pendingImageSrc = cardToEdit.imageSrc || '';
+    // If this card already has a correctArea, clone it.
+    // Otherwise use a default selector rectangle.
+    if (cardToEdit.correctArea) {
+        selectorRectPct = { ...cardToEdit.correctArea };
+    } else {
+        selectorRectPct = { x: 10, y: 10, width: 30, height: 30 };
+    }
+
+    // Sync the preview UI so the modal shows the current card image and area.
+    dropzonePreview.src = pendingImageSrc;
+    dropzonePlaceholder.style.display = 'none';
+    dropzonePreview.style.display = 'block';
+
+    correctAreaBg.src = pendingImageSrc;
+    correctAreaBg.style.display = 'block';
+    correctAreaSelector.style.display = 'block';
+    correctAreaPlaceholder.style.display = 'none';
+    addCardModal.style.display = 'flex';
+
+    requestAnimationFrame(renderSelectorFromPct);
+}
+
 function renderCardTitleList(deckKey) {
+    // Clear existing rows before rebuilding from current deck data.
     cardListContainer.replaceChildren();
 
     const deck = decks[deckKey] || [];
@@ -253,9 +293,11 @@ function renderCardTitleList(deckKey) {
         item.style.padding = '8px 10px';
         item.style.borderBottom = '1px solid #e6efe9';
 
-        const title = card.question && card.question.trim() !== ''
-            ? card.question
-            : `Untitled card ${index + 1}`;
+        // Use the question as the title when present, otherwise show a fallback label.
+        let title = `Untitled card ${index + 1}`;
+        if (card.question && card.question.trim() !== '') {
+            title = card.question;
+        }
 
         const titleText = document.createElement('span');
         titleText.innerText = `${index + 1}. ${title}`;
@@ -267,8 +309,21 @@ function renderCardTitleList(deckKey) {
             deleteCardAtIndex(index);
         });
 
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.innerText = 'E';
+        editBtn.addEventListener('click', () => {
+            editCardAtIndex(index);
+        });
+
+        const actionButtons = document.createElement('div');
+        actionButtons.style.display = 'flex';
+        actionButtons.style.gap = '6px';
+        actionButtons.appendChild(deleteBtn);
+        actionButtons.appendChild(editBtn);
+
         item.appendChild(titleText);
-        item.appendChild(deleteBtn);
+        item.appendChild(actionButtons);
         cardListContainer.appendChild(item);
     });
 }
@@ -407,18 +462,35 @@ saveCardBtn.addEventListener('click', () => {
 
     const promptText = cardPromptInput.value.trim();
 
+    let cardId = Date.now();
+    // If we're editing, keep the existing card id so references stay stable.
+    if (editingCardIndex !== null) {
+        cardId = decks[selectedDeckKey][editingCardIndex].id;
+    }
+
     const newCard = {
-        id: Date.now(),
+        id: cardId,
         imageSrc: pendingImageSrc,
         question: promptText || 'Untitled card',
         correctArea: { ...selectorRectPct},
         explanation: ''
     };
 
-    decks[selectedDeckKey].push(newCard);
+    // Create vs update:
+    // - no editing index => append new card
+    // - editing index exists => replace that specific card
+    if (editingCardIndex === null) {
+        decks[selectedDeckKey].push(newCard);
+    } else {
+        decks[selectedDeckKey][editingCardIndex] = newCard;
+    }
     renderCardTitleList(selectedDeckKey);
 
-    alert('Card saved to deck.');
+    if (editingCardIndex === null) {
+        alert('Card saved to deck.');
+    } else {
+        alert('Card updated.');
+    }
     addCardModal.style.display = 'none';
     resetAddCardForm();
 });
