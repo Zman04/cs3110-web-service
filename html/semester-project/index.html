@@ -6,12 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="An interactive flashcard application.">
     <title>Interactive Flashcards</title>
-    <link rel="stylesheet" href="style.css?v=4">
+    <link rel="stylesheet" href="style.css?v=5">
 </head>
 
 <body>
 
-    <div id="main-menu-screen">
+    <div id="login-screen">
+        <header>
+            <h1>Login</h1>
+        </header>
+        <main>
+            <div class="menu-container">
+                <label for="username-input">Username</label>
+                <input type="text" id="username-input" placeholder="Enter username" />
+                <label for="password-input">Password</label>
+                <input type="password" id="password-input" placeholder="Enter password" />
+                <button class="menu-btn" id="login-btn">Login</button>
+                <p style="font-size: 0.8rem; color: #666; margin-top: 10px;">
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <div id="main-menu-screen" style="display: none;">
         <header>
             <h1>Interactive Flashcards</h1>
         </header>
@@ -24,6 +41,7 @@
                     <button class="deck-btn" id="deck2-btn">Deck 2</button>
                 </div>
                 <button id="create-deck-btn">+ Create New Card Deck</button>
+                <button class="menu-btn secondary-btn" id="logout-btn">Logout</button>
             </div>
         </main>
     </div>
@@ -43,10 +61,13 @@
 
     <div id="edit-deck-screen" style="display: none;">
         <header>
-            <h1>Edit Deck</h1>
+            <h1 id="edit-deck-title">Edit Deck</h1>
         </header>
         <main id="edit-deck-content">
             <div class="menu-container">
+                <div id="card-list-container">
+                    <!-- Cards will be populated here -->
+                </div>
                 <button class="menu-btn" id="add-card-btn">+ Add Card</button>
                 <button class="menu-btn secondary-btn" id="edit-back-btn">Back</button>
             </div>
@@ -136,7 +157,7 @@
             </div>
         </main>
     </div>
-    <script src="script.js?v=3"></script>
+    <script src="script.js?v=4"></script>
 </body>
 
 </html>
