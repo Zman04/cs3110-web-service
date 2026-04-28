@@ -14,6 +14,13 @@
   text-align: center;
   border-radius: 8px;
   font-size: 1.2rem;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.grid-item:hover {
+  background-color: #2980b9;
 }
 
 /* Base style for all shapes */
@@ -46,4 +53,19 @@
 /* Hexagon */
 .hexagon {
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+/* Style the Popover */
+[popover] {
+  border: none;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+  max-width: 300px;
+  text-align: center;
+}
+
+/* Style the background dimming (Backdrop) */
+[popover]::backdrop {
+  background-color: rgba(0, 0, 0, 0.6);
 }
