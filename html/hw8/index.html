@@ -14,13 +14,35 @@
     <div id="mypopover" popover>Popover content</div>
 
     <!-- inventory -->
-     <div class="grid-container">
-        <div class="grid-item">1</div>
-        <div class="grid-item">2</div>
-        <div class="grid-item">3</div>
-        <div class="grid-item">4</div>
-        <div class="grid-item">5</div>
-     </div>
+    <div class="grid-container">
+   <button class="grid-item" popovertarget="circle-popup">
+     <div class="shape circle"></div>
+     <span>Circle</span>
+   </button>
+   <div class="grid-item">
+     <div class="shape triangle"></div>
+     <span>Triangle</span>
+   </div>
+   <div class="grid-item">
+     <div class="shape square"></div>
+     <span>Square</span>
+   </div>
+   <div class="grid-item">
+     <div class="shape trapezoid"></div>
+     <span>Trapezoid</span>
+   </div>
+   <div class="grid-item">
+     <div class="shape hexagon"></div>
+     <span>Hexagon</span>
+   </div>
+</div>
+
+<!-- The Popover Modal for the Circle -->
+<div id="circle-popup" popover>
+  <h2>Circle Details</h2>
+  <p>Circles are circles</p>
+</div>
+
     
 
     <script src="hw8.js"></script>
