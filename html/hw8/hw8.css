@@ -15,3 +15,35 @@
   border-radius: 8px;
   font-size: 1.2rem;
 }
+
+/* Base style for all shapes */
+.shape {
+  width: 80px;
+  height: 80px;
+  background-color: #e74c3c; /* Red shapes (change to whatever you like) */
+  margin: 0 auto 15px; /* Centers the shape and adds space below it */
+}
+
+/* Circle */
+.circle {
+  border-radius: 50%;
+}
+
+/* Triangle */
+.triangle {
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+/* Square (Width and height are already equal) */
+.square {
+}
+
+/* Trapezoid */
+.trapezoid {
+  clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+}
+
+/* Hexagon */
+.hexagon {
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
