@@ -1,7 +1,29 @@
 // Import the 'http' module (built-in to Node.js)
 const http = require('http');
 const url = require('url'); // Optional helper, but modern Node uses the URL class
+const path = require('path');
 
+// Require bcrypt for password hashing
+const bcrypt = require('bcrypt');
+
+// Require Sequelize for database management
+const { Sequelize } = require('sequelize');
+
+// Set up Sequelize with SQLite
+// Using path.join ensures the database file is created in the same directory as app.js
+const sequelize = new Sequelize({
+    dialect: 'sqlite',
+    storage: path.join(__dirname, 'database.sqlite')
+});
+
+// Verify the database connection
+sequelize.authenticate()
+    .then(() => {
+        console.log('Connection to the SQLite database has been established successfully.');
+    })
+    .catch(err => {
+        console.error('Unable to connect to the database:', err);
+    });
 let itemsList = ["apple", "banana", "cherry"];
 
 // Function to handle all incoming browser requests
