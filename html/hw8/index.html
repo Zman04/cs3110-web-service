@@ -3,15 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>My test page</title>
+    <title>Inventory</title>
     <link rel="stylesheet" href="hw8.css">
     
   </head>
   <body>
-    <h1>My test heading</h1>
-    <p>My test paragraph.</p>
-    <button popovertarget="mypopover">Toggle the popover</button>
-    <div id="mypopover" popover>Popover content</div>
+    <h1>Inventory of shapes</h1>
+    <p>Click on any shape to learn more about it. It will also play a note at the same time.</p>
 
     <!-- inventory -->
     <div class="grid-container">
@@ -19,28 +17,48 @@
      <div class="shape circle"></div>
      <span>Circle</span>
    </button>
-   <div class="grid-item">
+   <button class="grid-item" popovertarget="triangle-popup">
      <div class="shape triangle"></div>
      <span>Triangle</span>
-   </div>
-   <div class="grid-item">
+   </button>
+   <button class="grid-item" popovertarget="square-popup">
      <div class="shape square"></div>
      <span>Square</span>
-   </div>
-   <div class="grid-item">
+   </button>
+   <button class="grid-item" popovertarget="trapezoid-popup">
      <div class="shape trapezoid"></div>
      <span>Trapezoid</span>
-   </div>
-   <div class="grid-item">
+   </button>
+   <button class="grid-item" popovertarget="hexagon-popup">
      <div class="shape hexagon"></div>
      <span>Hexagon</span>
-   </div>
+   </button>
 </div>
 
 <!-- The Popover Modal for the Circle -->
 <div id="circle-popup" popover>
   <h2>Circle Details</h2>
   <p>Circles are circles</p>
+</div>
+
+<div id="triangle-popup" popover>
+  <h2>Triangle Details</h2>
+  <p>Triangles are triangles</p>
+</div>
+
+<div id="square-popup" popover>
+  <h2>Square Details</h2>
+  <p>Squares are squares</p>
+</div>
+
+<div id="trapezoid-popup" popover>
+  <h2>Trapezoid Details</h2>
+  <p>Trapezoids are trapezoids</p>
+</div>
+
+<div id="hexagon-popup" popover>
+  <h2>Hexagon Details</h2>
+  <p>Hexagons are hexagons</p>
 </div>
 
     

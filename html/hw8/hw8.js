@@ -26,10 +26,7 @@ function onMIDIFailure(msg) {
 }
 
 // Function to play real sound via Web Audio
-function playWebAudioNote(note = 60, duration = 500) {
-
-  const frequency = 261.6; // C4
-  
+function playWebAudioNote(frequency = 261.6, duration = 500) {
   const oscillator = audioCtx.createOscillator();
   const gainNode = audioCtx.createGain();
   
@@ -48,9 +45,9 @@ function playWebAudioNote(note = 60, duration = 500) {
 }
 
 // Function to play MIDI and Web Audio
-function playMIDINote(note = 60, duration = 500) {
+function playMIDINote(note = 60, frequency = 261.6, duration = 500) {
   // Play actual sound through speakers
-  playWebAudioNote(note, duration);
+  playWebAudioNote(frequency, duration);
 
   // Also send MIDI data if a device is connected
   if (midiOutput) {
@@ -63,12 +60,23 @@ function playMIDINote(note = 60, duration = 500) {
   }
 }
 
-// Add event listener to the circle item
+// Add event listeners to all items
 document.addEventListener('DOMContentLoaded', () => {
-  const circleBtn = document.querySelector('[popovertarget="circle-popup"]');
-  if (circleBtn) {
-    circleBtn.addEventListener('click', () => {
-      playMIDINote(60); // Play Middle C
-    });
-  }
+  // Define our shapes with their corresponding MIDI notes and Frequencies (C, D, E, F, G)
+  const shapes = [
+    { target: 'circle-popup', note: 60, freq: 261.6 },    // C4
+    { target: 'triangle-popup', note: 62, freq: 293.7 },  // D4
+    { target: 'square-popup', note: 64, freq: 329.6 },    // E4
+    { target: 'trapezoid-popup', note: 65, freq: 349.2 }, // F4
+    { target: 'hexagon-popup', note: 67, freq: 392.0 }    // G4
+  ];
+
+  shapes.forEach(shape => {
+    const btn = document.querySelector(`[popovertarget="${shape.target}"]`);
+    if (btn) {
+      btn.addEventListener('click', () => {
+        playMIDINote(shape.note, shape.freq);
+      });
+    }
+  });
 });
