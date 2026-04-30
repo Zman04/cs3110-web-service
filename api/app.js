@@ -7,7 +7,7 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 
 // Require Sequelize for database management
-const { Sequelize } = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 
 // Set up Sequelize with SQLite
 // Using path.join ensures the database file is created in the same directory as app.js
@@ -24,6 +24,25 @@ sequelize.authenticate()
     .catch(err => {
         console.error('Unable to connect to the database:', err);
     });
+
+// Define the User model
+const User = sequelize.define('User', {
+    username: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
+    },
+    passwordHash: {
+        type: DataTypes.STRING,
+        allowNull: false
+    }
+});
+
+// Sync the models with the database
+sequelize.sync()
+    .then(() => console.log('Database synced successfully.'))
+    .catch(err => console.error('Error syncing database:', err));
+
 let itemsList = ["apple", "banana", "cherry"];
 
 // Function to handle all incoming browser requests
