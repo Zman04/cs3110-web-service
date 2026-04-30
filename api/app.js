@@ -38,6 +38,39 @@ const User = sequelize.define('User', {
     }
 });
 
+// Define the Card model
+const Card = sequelize.define('Card', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
+    username: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    deckName: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    question: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    explanation: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    imageSrc: {
+        type: DataTypes.TEXT, // TEXT for potential base64 strings
+        allowNull: false
+    },
+    correctArea: {
+        type: DataTypes.JSON, // JSON to store {x, y, width, height}
+        allowNull: false
+    }
+});
+
 // Sync the models with the database
 sequelize.sync()
     .then(() => console.log('Database synced successfully.'))
