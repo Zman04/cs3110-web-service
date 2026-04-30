@@ -55,6 +55,12 @@ body {
     border-color: var(--secondary-green);
 }
 
+#login-message {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 10px;
+}
+
 #main-menu-screen {
     text-align: center;
 }
