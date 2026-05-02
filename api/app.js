@@ -200,6 +200,55 @@ const handleRequest = (req, res) => {
         res.writeHead(200, { "Content-Type": "text/plain" });
         res.end(`Hello, ${name || "Guest"}! This came from a Query Parameter.`);
     }
+    
+    // Handle User Registration
+    else if (parsedUrl.pathname === "/api/register" && req.method === "POST") {
+        let body = "";
+        
+        // Collect data chunks as they arrive
+        req.on("data", (chunk) => { body += chunk.toString(); });
+
+        // Once all data is received, process it
+        req.on("end", async () => {
+            // Parse the JSON data sent by the client
+            const parsedBody = JSON.parse(body);
+            const username = parsedBody.username;
+            const password = parsedBody.password;
+
+            // Make sure both username and password were provided
+            if (!username || !password) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ error: "Username and password are required." }));
+            }
+
+            // Check if a user with this username already exists in the database
+            const existingUser = await User.findOne({ where: { username: username } });
+            
+            if (existingUser) {
+                // 409 Conflict status code for duplicate entries
+                res.writeHead(409, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ error: "Username already exists." }));
+            }
+
+            // Hash the password using bcrypt
+            // The salt rounds determine how secure/slow the hashing is
+            const saltRounds = 10;
+            const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+            // Create the new user in the database with the hashed password
+            const newUser = await User.create({
+                username: username,
+                passwordHash: hashedPassword
+            });
+
+            // Respond with success
+            res.writeHead(201, { "Content-Type": "application/json" });
+            return res.end(JSON.stringify({ 
+                message: "User registered successfully!", 
+                username: newUser.username 
+            }));
+        });
+    }
 };
 
 // Create the server using the logic above
