@@ -17,8 +17,6 @@ const loginMessage = document.getElementById('login-message');
 
 const mainMenuScreen = document.getElementById('main-menu-screen');
 const flashcardScreen = document.getElementById('flashcard-screen');
-const startBtn = document.getElementById('start-btn');
-const deck2Btn = document.getElementById('deck2-btn');
 const backBtn = document.getElementById('back-btn');
 const createDeckBtn = document.getElementById('create-deck-btn');
 
@@ -50,43 +48,11 @@ let selectedDeckKey = null;
 let selectedDeckName = null;
 
 // --- Flashcard Data Storage ---
-const decks = {
-    spatial: [
-        {
-            id: 1,
-            imageSrc: 'images/cs3160-hospital-image.png',
-            question: "Which direction should I take to get to the hospital?",
-            correctArea: { x: 70, y: 30, width: 20, height: 20 },
-            explanation: "The hospital is located to the right."
-        },
-        {
-            id: 2,
-            imageSrc: 'images/cs3160-hallway-image.png',
-            question: "Where is the emergency exit?",
-            correctArea: { x: 40, y: 10, width: 20, height: 15 },
-            explanation: "The glowing red sign above indicates the exit."
-        },
-        {
-            id: 3,
-            imageSrc: 'images/cs3160-parabola-image.png',
-            question: "Click on the vertex of the parabola.",
-            correctArea: { x: 45, y: 50, width: 10, height: 15 },
-            explanation: "The vertex is the lowest or highest point of the parabola."
-        }
-    ],
-    deck2: [
-        {
-            id: 1,
-            imageSrc: 'https://via.placeholder.com/400x300?text=Deck+2+Sample',
-            question: "Click anywhere on this sample image.",
-            correctArea: { x: 0, y: 0, width: 100, height: 100 },
-            explanation: "This is a placeholder for Deck 2."
-        }
-    ]
-};
+// Starts empty. Populated from the backend after login.
+let decks = {};
 
 // Initialization
-let currentDeck = decks.spatial;
+let currentDeck = [];
 let scoreCorrectCounter = 0;
 let scoreIncorrectCounter = 0;
 let currentCardIndex = 0;
@@ -226,6 +192,41 @@ function hideAllScreens() {
     addCardModal.style.display = 'none';
 }
 
+// Fetches this user's cards from the backend and groups them by deckName
+async function fetchUserCards() {
+    const username = localStorage.getItem("currentUser");
+    if (!username) return;
+
+    const response = await fetch('/api/cards?username=' + username);
+    const data = await response.json();
+
+    // Reset decks then group cards by their deckName
+    decks = {};
+    data.cards.forEach((card) => {
+        if (!decks[card.deckName]) {
+            decks[card.deckName] = [];
+        }
+        decks[card.deckName].push(card);
+    });
+
+    renderDeckList();
+}
+
+// Dynamically creates a button for each deck in the main menu
+function renderDeckList() {
+    const deckList = document.getElementById('deck-list');
+    deckList.replaceChildren();
+
+    const deckKeys = Object.keys(decks);
+    deckKeys.forEach((deckKey) => {
+        const btn = document.createElement('button');
+        btn.className = 'deck-btn';
+        btn.innerText = deckKey;
+        btn.addEventListener('click', () => showDeckDetails(deckKey, deckKey));
+        deckList.appendChild(btn);
+    });
+}
+
 function showStartScreen() {
     hideAllScreens();
     loginScreen.style.display = 'block';
@@ -356,6 +357,9 @@ loginBtn.addEventListener('click', async () => {
             // Save the username locally to use when fetching cards later
             localStorage.setItem("currentUser", data.username);
             loginMessage.innerText = "";
+
+            // Fetch this user's cards from the database and show the menu
+            await fetchUserCards();
             hideAllScreens();
             mainMenuScreen.style.display = 'block';
         } else {
@@ -407,9 +411,6 @@ logoutBtn.addEventListener('click', () => {
 document.addEventListener("keydown", handleReset);
 cardIncorrect.addEventListener("click", handleIncorrectClick);
 cardCorrect.addEventListener("click", handleCorrectClick);
-
-startBtn.addEventListener('click', () => showDeckDetails('spatial', 'Spatial Directions'));
-deck2Btn.addEventListener('click', () => showDeckDetails('deck2', 'Deck 2'));
 
 // Deck Details Screen Listeners
 studyDeckBtn.addEventListener('click', () => {
