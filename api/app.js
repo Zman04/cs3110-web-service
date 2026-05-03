@@ -317,6 +317,45 @@ const handleRequest = (req, res) => {
                 res.end(JSON.stringify({ error: "Failed to fetch cards." }));
             });
     }
+
+    // Handle Adding New Cards
+    else if (parsedUrl.pathname === "/api/cards" && req.method === "POST") {
+        let body = "";
+        
+        // Collect incoming data
+        req.on("data", (chunk) => { body += chunk.toString(); });
+
+        // Process data once fully received
+        req.on("end", async () => {
+            const parsedBody = JSON.parse(body);
+            
+            // Extract the fields defined in our Card model
+            const { username, deckName, question, explanation, imageSrc, correctArea } = parsedBody;
+
+            // Make sure all required fields are provided (explanation is optional based on the model)
+            if (!username || !deckName || !question || !imageSrc || !correctArea) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ error: "Missing required card data." }));
+            }
+
+            // Create the new card in the database
+            const newCard = await Card.create({
+                username: username,
+                deckName: deckName,
+                question: question,
+                explanation: explanation,
+                imageSrc: imageSrc,
+                correctArea: correctArea
+            });
+
+            // Respond with success
+            res.writeHead(201, { "Content-Type": "application/json" });
+            return res.end(JSON.stringify({ 
+                message: "Card created successfully!", 
+                card: newCard 
+            }));
+        });
+    }
 };
 
 // Create the server using the logic above
