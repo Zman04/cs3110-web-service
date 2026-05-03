@@ -249,6 +249,56 @@ const handleRequest = (req, res) => {
             }));
         });
     }
+    
+    // Handle User Login
+    else if (parsedUrl.pathname === "/api/login" && req.method === "POST") {
+        let body = "";
+        
+        // Collect data chunks as they arrive
+        req.on("data", (chunk) => { body += chunk.toString(); });
+
+        // Once all data is received, process it
+        req.on("end", async () => {
+            // Parse the JSON data sent by the client
+            const parsedBody = JSON.parse(body);
+            const username = parsedBody.username;
+            const password = parsedBody.password;
+
+            // Make sure both username and password were provided
+            if (!username || !password) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ error: "Username and password are required." }));
+            }
+
+            // Find the user in the database
+            const user = await User.findOne({ where: { username: username } });
+            
+            // If the user doesn't exist, return an error
+            if (!user) {
+                res.writeHead(401, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ error: "Invalid username or password." }));
+            }
+
+            // Use bcrypt to compare the provided password with the stored hash
+            const match = await bcrypt.compare(password, user.passwordHash);
+
+            if (match) {
+                res.writeHead(200, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ 
+                    message: "Login successful!", 
+                    username: user.username 
+                }));
+            } else {
+                // Passwords do not match
+                res.writeHead(401, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ error: "Invalid username or password." }));
+            }
+        });
+    }
+    else if (parsedUrl.pathname === "/api/cards" && req.method === "GET") {
+        const { userId, deckId } = queryParams;
+        
+    }
 };
 
 // Create the server using the logic above
