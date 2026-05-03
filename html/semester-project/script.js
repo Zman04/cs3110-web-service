@@ -9,7 +9,11 @@ const flashcardExplanation = document.getElementById('flashcard-explanation');
 
 const loginScreen = document.getElementById('login-screen');
 const loginBtn = document.getElementById('login-btn');
+const registerBtn = document.getElementById('register-btn');
 const logoutBtn = document.getElementById('logout-btn');
+const usernameInput = document.getElementById('username-input');
+const passwordInput = document.getElementById('password-input');
+const loginMessage = document.getElementById('login-message');
 
 const mainMenuScreen = document.getElementById('main-menu-screen');
 const flashcardScreen = document.getElementById('flashcard-screen');
@@ -329,9 +333,71 @@ function renderCardTitleList(deckKey) {
 }
 
 // --- Event Listeners ---
-loginBtn.addEventListener('click', () => {
-    hideAllScreens();
-    mainMenuScreen.style.display = 'block';
+loginBtn.addEventListener('click', async () => {
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!username || !password) {
+        loginMessage.innerText = "Please enter both username and password.";
+        loginMessage.style.color = "red";
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Save the username locally to use when fetching cards later
+            localStorage.setItem("currentUser", data.username);
+            loginMessage.innerText = "";
+            hideAllScreens();
+            mainMenuScreen.style.display = 'block';
+        } else {
+            loginMessage.innerText = data.error || "Login failed.";
+            loginMessage.style.color = "red";
+        }
+    } catch (err) {
+        loginMessage.innerText = "Network error. Is the server running?";
+        loginMessage.style.color = "red";
+    }
+});
+
+registerBtn.addEventListener('click', async () => {
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!username || !password) {
+        loginMessage.innerText = "Please enter both username and password.";
+        loginMessage.style.color = "red";
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            loginMessage.innerText = "Registration successful! You can now login.";
+            loginMessage.style.color = "green";
+        } else {
+            loginMessage.innerText = data.error || "Registration failed.";
+            loginMessage.style.color = "red";
+        }
+    } catch (err) {
+        loginMessage.innerText = "Network error. Is the server running?";
+        loginMessage.style.color = "red";
+    }
 });
 
 logoutBtn.addEventListener('click', () => {

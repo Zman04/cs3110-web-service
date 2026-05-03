@@ -1,6 +1,81 @@
 // Import the 'http' module (built-in to Node.js)
 const http = require('http');
 const url = require('url'); // Optional helper, but modern Node uses the URL class
+const path = require('path');
+const fs = require('fs');
+
+// Require bcrypt for password hashing
+const bcrypt = require('bcrypt');
+
+// Require Sequelize for database management
+const { Sequelize, DataTypes } = require('sequelize');
+
+// Set up Sequelize with SQLite
+// Using path.join ensures the database file is created in the same directory as app.js
+const sequelize = new Sequelize({
+    dialect: 'sqlite',
+    storage: path.join(__dirname, 'database.sqlite')
+});
+
+// Verify the database connection
+sequelize.authenticate()
+    .then(() => {
+        console.log('Connection to the SQLite database has been established successfully.');
+    })
+    .catch(err => {
+        console.error('Unable to connect to the database:', err);
+    });
+
+// Define the User model
+const User = sequelize.define('User', {
+    username: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
+    },
+    passwordHash: {
+        type: DataTypes.STRING,
+        allowNull: false
+    }
+});
+
+// Define the Card model
+const Card = sequelize.define('Card', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
+    username: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    deckName: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    question: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    explanation: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    imageSrc: {
+        type: DataTypes.TEXT, // TEXT for potential base64 strings
+        allowNull: false
+    },
+    correctArea: {
+        type: DataTypes.JSON, // JSON to store {x, y, width, height}
+        allowNull: false
+    }
+});
+
+// Sync the models with the database
+sequelize.sync()
+    .then(() => console.log('Database synced successfully.'))
+    .catch(err => console.error('Error syncing database:', err));
 
 let itemsList = ["apple", "banana", "cherry"];
 
@@ -125,6 +200,279 @@ const handleRequest = (req, res) => {
 
         res.writeHead(200, { "Content-Type": "text/plain" });
         res.end(`Hello, ${name || "Guest"}! This came from a Query Parameter.`);
+    }
+    
+    // Handle User Registration
+    else if (parsedUrl.pathname === "/api/register" && req.method === "POST") {
+        let body = "";
+        
+        // Collect data chunks as they arrive
+        req.on("data", (chunk) => { body += chunk.toString(); });
+
+        // Once all data is received, process it
+        req.on("end", async () => {
+            // Parse the JSON data sent by the client
+            const parsedBody = JSON.parse(body);
+            const username = parsedBody.username;
+            const password = parsedBody.password;
+
+            // Make sure both username and password were provided
+            if (!username || !password) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ error: "Username and password are required." }));
+            }
+
+            // Check if a user with this username already exists in the database
+            const existingUser = await User.findOne({ where: { username: username } });
+            
+            if (existingUser) {
+                // 409 Conflict status code for duplicate entries
+                res.writeHead(409, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ error: "Username already exists." }));
+            }
+
+            // Hash the password using bcrypt
+            // The salt rounds determine how secure/slow the hashing is
+            const saltRounds = 10;
+            const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+            // Create the new user in the database with the hashed password
+            const newUser = await User.create({
+                username: username,
+                passwordHash: hashedPassword
+            });
+
+            // Respond with success
+            res.writeHead(201, { "Content-Type": "application/json" });
+            return res.end(JSON.stringify({ 
+                message: "User registered successfully!", 
+                username: newUser.username 
+            }));
+        });
+    }
+    
+    // Handle User Login
+    else if (parsedUrl.pathname === "/api/login" && req.method === "POST") {
+        let body = "";
+        
+        // Collect data chunks as they arrive
+        req.on("data", (chunk) => { body += chunk.toString(); });
+
+        // Once all data is received, process it
+        req.on("end", async () => {
+            // Parse the JSON data sent by the client
+            const parsedBody = JSON.parse(body);
+            const username = parsedBody.username;
+            const password = parsedBody.password;
+
+            // Make sure both username and password were provided
+            if (!username || !password) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ error: "Username and password are required." }));
+            }
+
+            // Find the user in the database
+            const user = await User.findOne({ where: { username: username } });
+            
+            // If the user doesn't exist, return an error
+            if (!user) {
+                res.writeHead(401, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ error: "Invalid username or password." }));
+            }
+
+            // Use bcrypt to compare the provided password with the stored hash
+            const match = await bcrypt.compare(password, user.passwordHash);
+
+            if (match) {
+                res.writeHead(200, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ 
+                    message: "Login successful!", 
+                    username: user.username 
+                }));
+            } else {
+                // Passwords do not match
+                res.writeHead(401, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ error: "Invalid username or password." }));
+            }
+        });
+    }
+    // Handle Fetching User's Cards
+    else if (parsedUrl.pathname === "/api/cards" && req.method === "GET") {
+        // We use queryParams.get()
+        const username = queryParams.get("username");
+        
+        if (!username) {
+            res.writeHead(400, { "Content-Type": "application/json" });
+            return res.end(JSON.stringify({ error: "Username query parameter is required." }));
+        }
+
+        // Fetch all cards belonging to this user from the database
+        Card.findAll({ where: { username: username } })
+            .then((userCards) => {
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ cards: userCards }));
+            })
+            .catch((err) => {
+                console.error("Error fetching cards:", err);
+                res.writeHead(500, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ error: "Failed to fetch cards." }));
+            });
+    }
+
+    // Handle Adding New Cards
+    else if (parsedUrl.pathname === "/api/cards" && req.method === "POST") {
+        let body = "";
+        
+        // Collect incoming data
+        req.on("data", (chunk) => { body += chunk.toString(); });
+
+        // Process data once fully received
+        req.on("end", async () => {
+            const parsedBody = JSON.parse(body);
+            
+            // Extract the fields defined in our Card model
+            const { username, deckName, question, explanation, imageSrc, correctArea } = parsedBody;
+
+            // Make sure all required fields are provided (explanation is optional based on the model)
+            if (!username || !deckName || !question || !imageSrc || !correctArea) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ error: "Missing required card data." }));
+            }
+
+            // Create the new card in the database
+            const newCard = await Card.create({
+                username: username,
+                deckName: deckName,
+                question: question,
+                explanation: explanation,
+                imageSrc: imageSrc,
+                correctArea: correctArea
+            });
+
+            // Respond with success
+            res.writeHead(201, { "Content-Type": "application/json" });
+            return res.end(JSON.stringify({ 
+                message: "Card created successfully!", 
+                card: newCard 
+            }));
+        });
+    }
+
+    // Handle Updating Existing Cards
+    else if (parsedUrl.pathname === "/api/cards" && req.method === "PUT") {
+        let body = "";
+        
+        // Collect incoming data
+        req.on("data", (chunk) => { body += chunk.toString(); });
+
+        // Process data once fully received
+        req.on("end", async () => {
+            // Get the card ID from the URL (?id=1)
+            const id = queryParams.get("id");
+
+            if (!id) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ error: "Card ID query parameter is required." }));
+            }
+
+            const parsedBody = JSON.parse(body);
+            
+            // Find the specific card by its Primary Key (id)
+            const cardToUpdate = await Card.findByPk(id);
+
+            // If the card doesn't exist, return a 404 Not Found error
+            if (!cardToUpdate) {
+                res.writeHead(404, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ error: "Card not found." }));
+            }
+
+            // Update the card properties with the new data
+            // We use '||' so if a field is missing from the request, it keeps its old value
+            cardToUpdate.deckName = parsedBody.deckName || cardToUpdate.deckName;
+            cardToUpdate.question = parsedBody.question || cardToUpdate.question;
+            
+            // Explanation can be empty, so we check if it was specifically provided
+            if (parsedBody.explanation !== undefined) {
+                cardToUpdate.explanation = parsedBody.explanation;
+            }
+            
+            cardToUpdate.imageSrc = parsedBody.imageSrc || cardToUpdate.imageSrc;
+            cardToUpdate.correctArea = parsedBody.correctArea || cardToUpdate.correctArea;
+
+            // Save the changes to the database
+            await cardToUpdate.save();
+
+            // Respond with success
+            res.writeHead(200, { "Content-Type": "application/json" });
+            return res.end(JSON.stringify({ 
+                message: "Card updated successfully!", 
+                card: cardToUpdate 
+            }));
+        });
+    }
+
+    // Handle Deleting Cards
+    else if (parsedUrl.pathname === "/api/cards" && req.method === "DELETE") {
+        // Get the card ID from the URL (?id=1)
+        const id = queryParams.get("id");
+
+        if (!id) {
+            res.writeHead(400, { "Content-Type": "application/json" });
+            return res.end(JSON.stringify({ error: "Card ID query parameter is required." }));
+        }
+
+        // Use Sequelize's destroy method, which returns the number of rows deleted
+        Card.destroy({ where: { id: id } })
+            .then((deletedCount) => {
+                // If 0 rows were deleted, the card didn't exist
+                if (deletedCount === 0) {
+                    res.writeHead(404, { "Content-Type": "application/json" });
+                    return res.end(JSON.stringify({ error: "Card not found." }));
+                }
+
+                // Respond with success
+                res.writeHead(200, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ message: "Card deleted successfully!" }));
+            });
+    }
+
+    // --- Serve Static Frontend Files ---
+    else {
+        // If the user just goes to localhost:3000/, serve index.html
+        let requestPath = parsedUrl.pathname === "/" ? "/index.html" : parsedUrl.pathname;
+        
+        // Build the full path to the file in the frontend directory
+        let filePath = path.join(__dirname, '../html/semester-project', requestPath);
+        
+        // Set the appropriate Content-Type so the browser knows how to parse it
+        let extname = path.extname(filePath);
+        let contentType = 'text/html';
+        switch (extname) {
+            case '.js': contentType = 'text/javascript'; break;
+            case '.css': contentType = 'text/css'; break;
+            case '.json': contentType = 'application/json'; break;
+            case '.png': contentType = 'image/png'; break;
+            case '.jpg': contentType = 'image/jpeg'; break;
+        }
+
+        // Read the file and send it back
+        fs.readFile(filePath, (err, content) => {
+            if (err) {
+                if (err.code === 'ENOENT') {
+                    // File doesn't exist
+                    res.writeHead(404, { "Content-Type": "text/plain" });
+                    res.end("404 File Not Found");
+                } else {
+                    // Server error (like permission denied)
+                    res.writeHead(500, { "Content-Type": "text/plain" });
+                    res.end("500 Internal Server Error");
+                }
+            } else {
+                // Success! Send the file contents
+                res.writeHead(200, { "Content-Type": contentType });
+                res.end(content, 'utf-8');
+            }
+        });
     }
 };
 

@@ -8,7 +8,10 @@
     <title>Interactive Flashcards</title>
     <link rel="stylesheet" href="style.css?v=5">
 </head>
+<!-- end head -->
 
+<!-- begin body -->
+<!-- begin login-screen -->
 <body>
 
     <div id="login-screen">
@@ -17,13 +20,16 @@
         </header>
         <main>
             <div class="menu-container">
+                <!-- The for="username-input" part explicitly links this label to the <input>
+                 on the next line because that input has the matching id="username-input"-->
+                 
                 <label for="username-input">Username</label>
                 <input type="text" id="username-input" placeholder="Enter username" />
                 <label for="password-input">Password</label>
                 <input type="password" id="password-input" placeholder="Enter password" />
                 <button class="menu-btn" id="login-btn">Login</button>
-                <p style="font-size: 0.8rem; color: #666; margin-top: 10px;">
-                </p>
+                <button class="menu-btn secondary-btn" id="register-btn">Register</button>
+                <p id="login-message"></p>
             </div>
         </main>
     </div>
