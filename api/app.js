@@ -2,6 +2,7 @@
 const http = require('http');
 const url = require('url'); // Optional helper, but modern Node uses the URL class
 const path = require('path');
+const fs = require('fs');
 
 // Require bcrypt for password hashing
 const bcrypt = require('bcrypt');
@@ -433,6 +434,45 @@ const handleRequest = (req, res) => {
                 res.writeHead(200, { "Content-Type": "application/json" });
                 return res.end(JSON.stringify({ message: "Card deleted successfully!" }));
             });
+    }
+
+    // --- Serve Static Frontend Files ---
+    else {
+        // If the user just goes to localhost:3000/, serve index.html
+        let requestPath = parsedUrl.pathname === "/" ? "/index.html" : parsedUrl.pathname;
+        
+        // Build the full path to the file in the frontend directory
+        let filePath = path.join(__dirname, '../html/semester-project', requestPath);
+        
+        // Set the appropriate Content-Type so the browser knows how to parse it
+        let extname = path.extname(filePath);
+        let contentType = 'text/html';
+        switch (extname) {
+            case '.js': contentType = 'text/javascript'; break;
+            case '.css': contentType = 'text/css'; break;
+            case '.json': contentType = 'application/json'; break;
+            case '.png': contentType = 'image/png'; break;
+            case '.jpg': contentType = 'image/jpeg'; break;
+        }
+
+        // Read the file and send it back
+        fs.readFile(filePath, (err, content) => {
+            if (err) {
+                if (err.code === 'ENOENT') {
+                    // File doesn't exist
+                    res.writeHead(404, { "Content-Type": "text/plain" });
+                    res.end("404 File Not Found");
+                } else {
+                    // Server error (like permission denied)
+                    res.writeHead(500, { "Content-Type": "text/plain" });
+                    res.end("500 Internal Server Error");
+                }
+            } else {
+                // Success! Send the file contents
+                res.writeHead(200, { "Content-Type": contentType });
+                res.end(content, 'utf-8');
+            }
+        });
     }
 };
 
