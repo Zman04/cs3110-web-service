@@ -295,9 +295,27 @@ const handleRequest = (req, res) => {
             }
         });
     }
+    // Handle Fetching User's Cards
     else if (parsedUrl.pathname === "/api/cards" && req.method === "GET") {
-        const { userId, deckId } = queryParams;
+        // We use queryParams.get()
+        const username = queryParams.get("username");
         
+        if (!username) {
+            res.writeHead(400, { "Content-Type": "application/json" });
+            return res.end(JSON.stringify({ error: "Username query parameter is required." }));
+        }
+
+        // Fetch all cards belonging to this user from the database
+        Card.findAll({ where: { username: username } })
+            .then((userCards) => {
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ cards: userCards }));
+            })
+            .catch((err) => {
+                console.error("Error fetching cards:", err);
+                res.writeHead(500, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ error: "Failed to fetch cards." }));
+            });
     }
 };
 
