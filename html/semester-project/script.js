@@ -197,7 +197,7 @@ async function fetchUserCards() {
     const username = localStorage.getItem("currentUser");
     if (!username) return;
 
-    const response = await fetch('/api/cards?username=' + username);
+    const response = await fetch('/semester-project/api/cards?username=' + username);
     const data = await response.json();
 
     // Reset decks then group cards by their deckName
@@ -238,7 +238,7 @@ async function deleteCardAtIndex(cardIndex) {
     const card = decks[selectedDeckKey][cardIndex];
 
     // Delete the card from the database
-    const response = await fetch('/api/cards?id=' + card.id, {
+    const response = await fetch('/semester-project/api/cards?id=' + card.id, {
         method: 'DELETE'
     });
 
@@ -357,7 +357,7 @@ loginBtn.addEventListener('click', async () => {
     }
 
     try {
-        const response = await fetch('/api/login', {
+        const response = await fetch('/semester-project/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
@@ -395,7 +395,7 @@ registerBtn.addEventListener('click', async () => {
     }
 
     try {
-        const response = await fetch('/api/register', {
+        const response = await fetch('/semester-project/api/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
@@ -556,7 +556,7 @@ saveCardBtn.addEventListener('click', async () => {
     // Decide whether to create a new card (POST) or update an existing one (PUT)
     if (editingCardIndex === null) {
         // Creating a new card
-        const response = await fetch('/api/cards', {
+        const response = await fetch('/semester-project/api/cards', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(cardData)
@@ -572,7 +572,7 @@ saveCardBtn.addEventListener('click', async () => {
     } else {
         // Updating an existing card
         const existingCard = decks[selectedDeckKey][editingCardIndex];
-        const response = await fetch('/api/cards?id=' + existingCard.id, {
+        const response = await fetch('/semester-project/api/cards?id=' + existingCard.id, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(cardData)

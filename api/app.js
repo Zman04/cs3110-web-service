@@ -478,7 +478,7 @@ const handleRequest = (req, res) => {
 
 // Create the server using the logic above
 const server = http.createServer(handleRequest);
-// Tell the server to listen for traffic on Port 3000
-server.listen(3000, () => {
-    console.log("Server is running on port 3000...");
+// Tell the server to listen for traffic on Port 3002
+server.listen(3002, () => {
+    console.log("Server is running on port 3002...");
 });
