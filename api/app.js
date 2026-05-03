@@ -356,6 +356,59 @@ const handleRequest = (req, res) => {
             }));
         });
     }
+
+    // Handle Updating Existing Cards
+    else if (parsedUrl.pathname === "/api/cards" && req.method === "PUT") {
+        let body = "";
+        
+        // Collect incoming data
+        req.on("data", (chunk) => { body += chunk.toString(); });
+
+        // Process data once fully received
+        req.on("end", async () => {
+            // Get the card ID from the URL (?id=1)
+            const id = queryParams.get("id");
+
+            if (!id) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ error: "Card ID query parameter is required." }));
+            }
+
+            const parsedBody = JSON.parse(body);
+            
+            // Find the specific card by its Primary Key (id)
+            const cardToUpdate = await Card.findByPk(id);
+
+            // If the card doesn't exist, return a 404 Not Found error
+            if (!cardToUpdate) {
+                res.writeHead(404, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ error: "Card not found." }));
+            }
+
+            // Update the card properties with the new data
+            // We use '||' so if a field is missing from the request, it keeps its old value
+            cardToUpdate.deckName = parsedBody.deckName || cardToUpdate.deckName;
+            cardToUpdate.question = parsedBody.question || cardToUpdate.question;
+            
+            // Explanation can be empty, so we check if it was specifically provided
+            if (parsedBody.explanation !== undefined) {
+                cardToUpdate.explanation = parsedBody.explanation;
+            }
+            
+            cardToUpdate.imageSrc = parsedBody.imageSrc || cardToUpdate.imageSrc;
+            cardToUpdate.correctArea = parsedBody.correctArea || cardToUpdate.correctArea;
+
+            // Save the changes to the database
+            await cardToUpdate.save();
+
+            // Respond with success
+            res.writeHead(200, { "Content-Type": "application/json" });
+            return res.end(JSON.stringify({ 
+                message: "Card updated successfully!", 
+                card: cardToUpdate 
+            }));
+        });
+    }
 };
 
 // Create the server using the logic above
