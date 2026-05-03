@@ -29,6 +29,38 @@ body {
     max-width: 22rem;
 }
 
+#login-screen label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--primary-green);
+    text-align: left;
+    margin-bottom: -5px; /* Pulls label closer to input */
+}
+
+#login-screen input {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 1rem;
+    border: 2px solid var(--accent-green);
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+    color: var(--dark-green);
+}
+
+#login-screen input:focus {
+    border-color: var(--secondary-green);
+}
+
+#login-message {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 10px;
+}
+
 #main-menu-screen {
     text-align: center;
 }
