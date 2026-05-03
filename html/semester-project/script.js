@@ -17,8 +17,6 @@ const loginMessage = document.getElementById('login-message');
 
 const mainMenuScreen = document.getElementById('main-menu-screen');
 const flashcardScreen = document.getElementById('flashcard-screen');
-const startBtn = document.getElementById('start-btn');
-const deck2Btn = document.getElementById('deck2-btn');
 const backBtn = document.getElementById('back-btn');
 const createDeckBtn = document.getElementById('create-deck-btn');
 
@@ -50,43 +48,11 @@ let selectedDeckKey = null;
 let selectedDeckName = null;
 
 // --- Flashcard Data Storage ---
-const decks = {
-    spatial: [
-        {
-            id: 1,
-            imageSrc: 'images/cs3160-hospital-image.png',
-            question: "Which direction should I take to get to the hospital?",
-            correctArea: { x: 70, y: 30, width: 20, height: 20 },
-            explanation: "The hospital is located to the right."
-        },
-        {
-            id: 2,
-            imageSrc: 'images/cs3160-hallway-image.png',
-            question: "Where is the emergency exit?",
-            correctArea: { x: 40, y: 10, width: 20, height: 15 },
-            explanation: "The glowing red sign above indicates the exit."
-        },
-        {
-            id: 3,
-            imageSrc: 'images/cs3160-parabola-image.png',
-            question: "Click on the vertex of the parabola.",
-            correctArea: { x: 45, y: 50, width: 10, height: 15 },
-            explanation: "The vertex is the lowest or highest point of the parabola."
-        }
-    ],
-    deck2: [
-        {
-            id: 1,
-            imageSrc: 'https://via.placeholder.com/400x300?text=Deck+2+Sample',
-            question: "Click anywhere on this sample image.",
-            correctArea: { x: 0, y: 0, width: 100, height: 100 },
-            explanation: "This is a placeholder for Deck 2."
-        }
-    ]
-};
+// Starts empty. Populated from the backend after login.
+let decks = {};
 
 // Initialization
-let currentDeck = decks.spatial;
+let currentDeck = [];
 let scoreCorrectCounter = 0;
 let scoreIncorrectCounter = 0;
 let currentCardIndex = 0;
@@ -226,16 +192,63 @@ function hideAllScreens() {
     addCardModal.style.display = 'none';
 }
 
+// Fetches this user's cards from the backend and groups them by deckName
+async function fetchUserCards() {
+    const username = localStorage.getItem("currentUser");
+    if (!username) return;
+
+    const response = await fetch('/api/cards?username=' + username);
+    const data = await response.json();
+
+    // Reset decks then group cards by their deckName
+    decks = {};
+    data.cards.forEach((card) => {
+        if (!decks[card.deckName]) {
+            decks[card.deckName] = [];
+        }
+        decks[card.deckName].push(card);
+    });
+
+    renderDeckList();
+}
+
+// Dynamically creates a button for each deck in the main menu
+function renderDeckList() {
+    const deckList = document.getElementById('deck-list');
+    deckList.replaceChildren();
+
+    const deckKeys = Object.keys(decks);
+    deckKeys.forEach((deckKey) => {
+        const btn = document.createElement('button');
+        btn.className = 'deck-btn';
+        btn.innerText = deckKey;
+        btn.addEventListener('click', () => showDeckDetails(deckKey, deckKey));
+        deckList.appendChild(btn);
+    });
+}
+
 function showStartScreen() {
     hideAllScreens();
     loginScreen.style.display = 'block';
 }
 
-function deleteCardAtIndex(cardIndex) {
+async function deleteCardAtIndex(cardIndex) {
     if (!selectedDeckKey || !decks[selectedDeckKey]) return;
 
-    decks[selectedDeckKey].splice(cardIndex, 1);
-    renderCardTitleList(selectedDeckKey);
+    const card = decks[selectedDeckKey][cardIndex];
+
+    // Delete the card from the database
+    const response = await fetch('/api/cards?id=' + card.id, {
+        method: 'DELETE'
+    });
+
+    if (response.ok) {
+        // Re-fetch so local data stays in sync with the database
+        await fetchUserCards();
+        renderCardTitleList(selectedDeckKey);
+    } else {
+        alert('Failed to delete card.');
+    }
 }
 
 function editCardAtIndex(cardIndex) {
@@ -356,6 +369,9 @@ loginBtn.addEventListener('click', async () => {
             // Save the username locally to use when fetching cards later
             localStorage.setItem("currentUser", data.username);
             loginMessage.innerText = "";
+
+            // Fetch this user's cards from the database and show the menu
+            await fetchUserCards();
             hideAllScreens();
             mainMenuScreen.style.display = 'block';
         } else {
@@ -401,15 +417,14 @@ registerBtn.addEventListener('click', async () => {
 });
 
 logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem("currentUser");
+    decks = {};
     showStartScreen();
 });
 
 document.addEventListener("keydown", handleReset);
 cardIncorrect.addEventListener("click", handleIncorrectClick);
 cardCorrect.addEventListener("click", handleCorrectClick);
-
-startBtn.addEventListener('click', () => showDeckDetails('spatial', 'Spatial Directions'));
-deck2Btn.addEventListener('click', () => showDeckDetails('deck2', 'Deck 2'));
 
 // Deck Details Screen Listeners
 studyDeckBtn.addEventListener('click', () => {
@@ -515,7 +530,7 @@ imageFileInput.addEventListener('change', (event) => {
     reader.readAsDataURL(file);
 });
 
-saveCardBtn.addEventListener('click', () => {
+saveCardBtn.addEventListener('click', async () => {
     if (!selectedDeckKey || !decks[selectedDeckKey]) {
         alert('No deck selected. Go back and choose a deck first.');
         return;
@@ -526,37 +541,56 @@ saveCardBtn.addEventListener('click', () => {
         return;
     }
 
+    const username = localStorage.getItem("currentUser");
     const promptText = cardPromptInput.value.trim();
 
-    let cardId = Date.now();
-    // If we're editing, keep the existing card id so references stay stable.
-    if (editingCardIndex !== null) {
-        cardId = decks[selectedDeckKey][editingCardIndex].id;
-    }
-
-    const newCard = {
-        id: cardId,
+    const cardData = {
+        username: username,
+        deckName: selectedDeckKey,
         imageSrc: pendingImageSrc,
         question: promptText || 'Untitled card',
-        correctArea: { ...selectorRectPct},
+        correctArea: { ...selectorRectPct },
         explanation: ''
     };
 
-    // Create vs update:
-    // - no editing index => append new card
-    // - editing index exists => replace that specific card
+    // Decide whether to create a new card (POST) or update an existing one (PUT)
     if (editingCardIndex === null) {
-        decks[selectedDeckKey].push(newCard);
+        // Creating a new card
+        const response = await fetch('/api/cards', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cardData)
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            alert('Card saved to deck.');
+        } else {
+            alert(data.error || 'Failed to save card.');
+            return;
+        }
     } else {
-        decks[selectedDeckKey][editingCardIndex] = newCard;
+        // Updating an existing card
+        const existingCard = decks[selectedDeckKey][editingCardIndex];
+        const response = await fetch('/api/cards?id=' + existingCard.id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cardData)
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            alert('Card updated.');
+        } else {
+            alert(data.error || 'Failed to update card.');
+            return;
+        }
     }
+
+    // Re-fetch cards from the server so our local data stays in sync
+    await fetchUserCards();
     renderCardTitleList(selectedDeckKey);
 
-    if (editingCardIndex === null) {
-        alert('Card saved to deck.');
-    } else {
-        alert('Card updated.');
-    }
     addCardModal.style.display = 'none';
     resetAddCardForm();
 });
