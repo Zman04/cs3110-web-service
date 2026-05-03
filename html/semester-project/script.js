@@ -232,11 +232,23 @@ function showStartScreen() {
     loginScreen.style.display = 'block';
 }
 
-function deleteCardAtIndex(cardIndex) {
+async function deleteCardAtIndex(cardIndex) {
     if (!selectedDeckKey || !decks[selectedDeckKey]) return;
 
-    decks[selectedDeckKey].splice(cardIndex, 1);
-    renderCardTitleList(selectedDeckKey);
+    const card = decks[selectedDeckKey][cardIndex];
+
+    // Delete the card from the database
+    const response = await fetch('/api/cards?id=' + card.id, {
+        method: 'DELETE'
+    });
+
+    if (response.ok) {
+        // Re-fetch so local data stays in sync with the database
+        await fetchUserCards();
+        renderCardTitleList(selectedDeckKey);
+    } else {
+        alert('Failed to delete card.');
+    }
 }
 
 function editCardAtIndex(cardIndex) {
@@ -405,6 +417,8 @@ registerBtn.addEventListener('click', async () => {
 });
 
 logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem("currentUser");
+    decks = {};
     showStartScreen();
 });
 
@@ -516,7 +530,7 @@ imageFileInput.addEventListener('change', (event) => {
     reader.readAsDataURL(file);
 });
 
-saveCardBtn.addEventListener('click', () => {
+saveCardBtn.addEventListener('click', async () => {
     if (!selectedDeckKey || !decks[selectedDeckKey]) {
         alert('No deck selected. Go back and choose a deck first.');
         return;
@@ -527,37 +541,56 @@ saveCardBtn.addEventListener('click', () => {
         return;
     }
 
+    const username = localStorage.getItem("currentUser");
     const promptText = cardPromptInput.value.trim();
 
-    let cardId = Date.now();
-    // If we're editing, keep the existing card id so references stay stable.
-    if (editingCardIndex !== null) {
-        cardId = decks[selectedDeckKey][editingCardIndex].id;
-    }
-
-    const newCard = {
-        id: cardId,
+    const cardData = {
+        username: username,
+        deckName: selectedDeckKey,
         imageSrc: pendingImageSrc,
         question: promptText || 'Untitled card',
-        correctArea: { ...selectorRectPct},
+        correctArea: { ...selectorRectPct },
         explanation: ''
     };
 
-    // Create vs update:
-    // - no editing index => append new card
-    // - editing index exists => replace that specific card
+    // Decide whether to create a new card (POST) or update an existing one (PUT)
     if (editingCardIndex === null) {
-        decks[selectedDeckKey].push(newCard);
+        // Creating a new card
+        const response = await fetch('/api/cards', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cardData)
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            alert('Card saved to deck.');
+        } else {
+            alert(data.error || 'Failed to save card.');
+            return;
+        }
     } else {
-        decks[selectedDeckKey][editingCardIndex] = newCard;
+        // Updating an existing card
+        const existingCard = decks[selectedDeckKey][editingCardIndex];
+        const response = await fetch('/api/cards?id=' + existingCard.id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cardData)
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            alert('Card updated.');
+        } else {
+            alert(data.error || 'Failed to update card.');
+            return;
+        }
     }
+
+    // Re-fetch cards from the server so our local data stays in sync
+    await fetchUserCards();
     renderCardTitleList(selectedDeckKey);
 
-    if (editingCardIndex === null) {
-        alert('Card saved to deck.');
-    } else {
-        alert('Card updated.');
-    }
     addCardModal.style.display = 'none';
     resetAddCardForm();
 });
