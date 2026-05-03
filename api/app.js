@@ -409,6 +409,31 @@ const handleRequest = (req, res) => {
             }));
         });
     }
+
+    // Handle Deleting Cards
+    else if (parsedUrl.pathname === "/api/cards" && req.method === "DELETE") {
+        // Get the card ID from the URL (?id=1)
+        const id = queryParams.get("id");
+
+        if (!id) {
+            res.writeHead(400, { "Content-Type": "application/json" });
+            return res.end(JSON.stringify({ error: "Card ID query parameter is required." }));
+        }
+
+        // Use Sequelize's destroy method, which returns the number of rows deleted
+        Card.destroy({ where: { id: id } })
+            .then((deletedCount) => {
+                // If 0 rows were deleted, the card didn't exist
+                if (deletedCount === 0) {
+                    res.writeHead(404, { "Content-Type": "application/json" });
+                    return res.end(JSON.stringify({ error: "Card not found." }));
+                }
+
+                // Respond with success
+                res.writeHead(200, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ message: "Card deleted successfully!" }));
+            });
+    }
 };
 
 // Create the server using the logic above
