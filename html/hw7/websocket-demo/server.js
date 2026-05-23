@@ -15,7 +15,7 @@ wss.on('connection', (ws, req) => {
     const formattedMessage = `[${userIP}]: ${textMessage}`;
     
     messageHistory.push(formattedMessage);
-    if (messageHistory.length > 50) messageHistory.shift();
+    if (messageHistory.length > 10) messageHistory.shift();
     
     wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
